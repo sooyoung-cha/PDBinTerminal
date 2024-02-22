@@ -1,7 +1,10 @@
 #include <iostream>
 #include <string>
+#include <fstream>
 #include <cstring>
 #include <vector>
+
+#include <typeinfo>
 
 using namespace std;
 
@@ -97,26 +100,22 @@ struct Atom{
 };
 
 struct Chain{
-    string name;
+    char name;
     vector<Atom> atoms;
-
 };
 
 class PDBData{
     private:
-        string coords = "";
-        string struc = "";
+        vector<Chain> chains;
     public:
         PDBData(){
-
+            return;
         }
 
         //get, set
-        void set_coords(string temp){
-            coords = temp;
-        }
-        void set_struc(string temp){
-            struc = temp;
+        void set_chain(Chain chain){
+            chains.push_back(chain);
+            return;
         }
 };
 
@@ -124,37 +123,70 @@ class PDBReader{
     private:
         PDBData data;
 
-        string get_structure(string in_file){
-            
+        vector<string> read_structure(string in_file){
+            ifstream openFile(in_file.data()); 
+            vector<string> struc;
+
+            if(openFile.is_open()){
+                string line;
+                while(getline(openFile, line)){
+                    if(line.find("ATOM") == 0){
+                        struc.push_back(line);
+                    }
+                }
+            }               
+            return struc;
         }
 
-        string get_coords(string struc, string format, string chains){
-            if (format == "pdb" || format == "mmcif" || format == "mmtf"){
-                return coords_biopython(struc, chains);
+        Chain read_chain(vector<string> struc, char chain_name){
+            Chain chain;
+            chain.name = chain_name;
+            for(const string s : struc) {
+                Atom new_atom;
+                vector<string> s_split = string_split(s);
+                if (s_split[4][0] == chain_name){
+                    new_atom.element = s_split[2];
+                    new_atom.aa = s_split[3];
+                    new_atom.coords[0] = stof(s_split[6]);
+                    new_atom.coords[1] = stof(s_split[7]);
+                    new_atom.coords[2] = stof(s_split[8]);
+
+                    chain.atoms.push_back(new_atom);
+                }
+                //cout << new_atom.element << ", " << new_atom.aa << ", " << new_atom.coords[0] << ", " << new_atom.coords[1] << ", " << new_atom.coords[2] << endl; 
             }
-            else {
-                return coords_schrodinger(struc, chains);
-            }
+            return chain;
         }
 
-        string coords_schrodinger(string struc, string chains){
-            return "We only deal with pdb files";
-        }
-
-        string coords_biopython(string struc, string chains){
+        vector<string> string_split(string s){
+            string temp = "";
+            vector<string> result;
             
+            for(int i = 0; i < s.length(); i++){
+                if (s[i] == ' ' && temp != ""){
+                    result.push_back(temp);
+                    temp = "";
+                }
+                else if(s[i] != ' '){
+                    temp = temp + s[i];
+                }
+            }
+            return result;
         }
-        
+
     public:
         PDBReader(){
-
+            return;
         }
 
         void read_file(Parameters& param){
-            string struc = get_structure(param.get_in_file());
-            string coords = get_coords(struc, param.get_format(), param.get_chains());
-            data.set_struc(struc);
-            data.set_coords(coords);
+            string in_file = param.get_in_file();
+            string chains = param.get_chains();
+
+            vector<string> struc = read_structure(in_file);
+            for(int i = 0; i < chains.length(); i++){
+                data.set_chain(read_chain(struc, chains[i]));
+            }
         }
 
         // get, set

@@ -9,10 +9,11 @@ int main(int argc, char *argv[]){
     PDBReader reader;
 
     if (param.check_arg_okay()){
-       param.print_args();
-        /*
+        param.print_args();
         reader.read_file(param);
         PDBData pdb_data = reader.get_data();
+        
+        /*
         viewer.print_data(param, pdb_data);
         */
     }
