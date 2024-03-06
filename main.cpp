@@ -1,6 +1,7 @@
+#include "lib.h"
+#include "data.h"
+#include "parameter.h"
 #include "viewer.h"
-
-using namespace std;
 
 int main(int argc, char *argv[]){
     cout << "RUN PDBinTerminal" << endl;
