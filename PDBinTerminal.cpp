@@ -76,9 +76,9 @@ int main(){
     keyboard = (char) getch();
 
     Point point(win, columns, lines);
-    wclear(win);
-    box(win, '|', '-');
-    wrefresh(win);
+    // wclear(win);
+    // box(win, '|', '-');
+    // wrefresh(win);
     point.show();
 
     if (keyboard != 'q'){
