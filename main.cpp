@@ -11,8 +11,7 @@ int main(int argc, char *argv[]){
 
     if (param.check_arg_okay()){
         param.print_args();
-        reader.read_file(param);
-        PDBData pdb_data = reader.get_data();
+        PDBData pdb_data = reader.read_file(param);
         PDBViewer viewer(param, pdb_data);
         viewer.show_viewer();
     }

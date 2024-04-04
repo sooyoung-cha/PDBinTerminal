@@ -1,7 +1,5 @@
 class PDBReader{
     private:
-        PDBData data;
-
         vector<string> read_structure(string in_file){
             ifstream openFile(in_file.data()); 
             vector<string> struc;
@@ -70,7 +68,8 @@ class PDBReader{
             return;
         }
 
-        void read_file(Parameters& param){
+        PDBData read_file(Parameters& param){
+            PDBData data;
             string in_file = param.get_in_file();
             string chains = param.get_chains();
 
@@ -78,11 +77,6 @@ class PDBReader{
             for(int i = 0; i < chains.length(); i++){
                 data.set_chain(read_chain(struc, chains[i]));
             }          
-            
-        }
-
-        // get, set
-        PDBData get_data(){
             return data;
         }
 };
@@ -188,7 +182,7 @@ class PDBViewer{
 
                     if (rot != 0) { rotate_atom(printed_atom, pdb.get_center()); }
                     if (move_atom(printed_atom)){
-                        move(floor(printed_atom.coords[x]), floor(printed_atom.coords[y]));
+                        move(round(printed_atom.coords[x]), round(printed_atom.coords[y]));
                         printw("*"); 
                     }
                 }
