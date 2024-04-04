@@ -1,10 +1,10 @@
 class Parameters{
     private:
-        string in_file = "./AF-A0A2U9ICS3-F1-model_v4.pdb";
+        string in_file = "./test.pdb";
         string format = "pdb";
         string chains = "A";
         int model = 1;
-        float boxsize = 100.0;
+        int boxsize = 20;
         bool arg_okay = true;
 
     public:
@@ -37,7 +37,7 @@ class Parameters{
                         i++;
                     }
                     else if (!strcmp(argv[i],"-s") || !strcmp(argv[i],"--boxsize")){
-                        boxsize = atof(argv[i+1]);
+                        boxsize = atoi(argv[i+1]);
                         i++;
                     }
                     else {throw;}
@@ -77,7 +77,7 @@ class Parameters{
         int get_model(){
             return model;
         }
-        float get_boxsize(){
+        int get_boxsize(){
             return boxsize;
         }
 };
