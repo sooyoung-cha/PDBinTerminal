@@ -1,3 +1,6 @@
+// g++ -std=c++17 main.cpp -o main.o -lncurses
+// F1 => Terminal › Integrated: Letter Spacing => 9
+
 #include "lib.h"
 #include "data.h"
 #include "parameter.h"

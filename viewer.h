@@ -31,7 +31,7 @@ class PDBReader{
             return result;
         }
 
-        Chain read_chain(vector<string> struc, char chain_name){
+        Chain read_chain(vector<string> struc, char chain_name, Atom& norm_factor){
             Chain chain;
             chain.name = chain_name;
 
@@ -46,9 +46,15 @@ class PDBReader{
                     new_atom.coords[y] = stof(s_split[7]);
                     new_atom.coords[z] = stof(s_split[8]);
 
+                    /*
                     chain.center.coords[x] += new_atom.coords[x];
                     chain.center.coords[y] += new_atom.coords[y];
                     chain.center.coords[z] += new_atom.coords[z];
+                    */
+                    
+                    norm_factor.coords[x] = max(norm_factor.coords[x], abs(new_atom.coords[x]));
+                    norm_factor.coords[y] = max(norm_factor.coords[y], abs(new_atom.coords[y]));
+                    norm_factor.coords[z] = max(norm_factor.coords[z], abs(new_atom.coords[z]));
 
                     chain.num_atoms++;
 
@@ -56,12 +62,15 @@ class PDBReader{
                 }
 
             }
+           
+            /*            
             chain.center.coords[x] /= chain.num_atoms;
             chain.center.coords[y] /= chain.num_atoms;
             chain.center.coords[z] /= chain.num_atoms;
+            */
+
             return chain;
         }
-
 
     public:
         PDBReader(){
@@ -70,13 +79,18 @@ class PDBReader{
 
         PDBData read_file(Parameters& param){
             PDBData data;
+            Atom norm_factor;
+
             string in_file = param.get_in_file();
             string chains = param.get_chains();
 
             vector<string> struc = read_structure(in_file);
             for(int i = 0; i < chains.length(); i++){
-                data.set_chain(read_chain(struc, chains[i]));
+                data.set_chain(read_chain(struc, chains[i], norm_factor));
             }          
+
+            data.normalize_coords(norm_factor);
+
             return data;
         }
 };
@@ -85,6 +99,7 @@ class PDBViewer{
     private:
         int x_limit;
         int y_limit;
+        int zoom;
         int x_move = 0;
         int y_move = 0;
         int rot = 0;
@@ -95,6 +110,7 @@ class PDBViewer{
         PDBViewer(Parameters& param, PDBData set_data){
             x_limit = param.get_boxsize();
             y_limit = param.get_boxsize();
+            zoom = param.get_boxsize() / 2;
             data = set_data;
 
             return;
@@ -121,8 +137,8 @@ class PDBViewer{
             double distance = dist(a, center);
             Atom new_a;
             
-            new_a.coords[x] = center.coords[x] + (distance * ((a.coords[x]-center.coords[x]) * cos(rot * 45 * PI / 180.0) - (a.coords[y]-center.coords[y]) * sin(rot * 45 * PI / 180.0)));
-            new_a.coords[y] = center.coords[y] + (distance * ((a.coords[y]-center.coords[y]) * cos(rot * 45 * PI / 180.0) + (a.coords[x]-center.coords[x]) * sin(rot * 45 * PI / 180.0)));
+            new_a.coords[x] = center.coords[x] + ((a.coords[x]-center.coords[x]) * cos(rot * 45 * PI / 180.0) - (a.coords[y]-center.coords[y]) * sin(rot * 45 * PI / 180.0));
+            new_a.coords[y] = center.coords[y] + ((a.coords[y]-center.coords[y]) * cos(rot * 45 * PI / 180.0) + (a.coords[x]-center.coords[x]) * sin(rot * 45 * PI / 180.0));
 
             a.coords[x] = new_a.coords[x];
             a.coords[y] = new_a.coords[y];
@@ -163,6 +179,16 @@ class PDBViewer{
                 case 69:
                     rot = (rot - 1) % 8;
                     break;   
+                // R, R
+                case 114:
+                case 82:
+                    zoom += 2;
+                    break;   
+                // F, f
+                case 102:
+                case 70:
+                    zoom -= 2;
+                    break;   
                 default:
                     keep_show = false;
                     break;       
@@ -177,8 +203,8 @@ class PDBViewer{
             for(unsigned int j = 0; j < pdb.get_num_chains(); j++){
                 Chain chain = pdb.get_chain(j);
                 for (unsigned int i = 0; i < chain.num_atoms; i++){                 
-                    printed_atom.coords[x] = chain.atoms[i].coords[x];
-                    printed_atom.coords[y] = chain.atoms[i].coords[y];
+                    printed_atom.coords[x] = chain.atoms[i].coords[x] * (double)zoom;
+                    printed_atom.coords[y] = chain.atoms[i].coords[y] * (double)zoom;
 
                     if (rot != 0) { rotate_atom(printed_atom, pdb.get_center()); }
                     if (move_atom(printed_atom)){

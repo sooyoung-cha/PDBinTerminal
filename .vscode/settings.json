@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "vector": "cpp"
+        "vector": "cpp",
+        "cmath": "cpp",
+        "random": "cpp"
     }
 }
