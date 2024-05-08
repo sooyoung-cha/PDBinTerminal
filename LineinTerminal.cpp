@@ -5,6 +5,7 @@
 
 struct Line {
     int status;
+    unsigned int zoomStatus;
     int colPos;
     int linePos;
     int columns;
@@ -15,6 +16,7 @@ struct Line {
     Line(WINDOW* win, int columns, int lines) : columns(columns), lines(lines), win(win) {
         srand(static_cast<unsigned int>(time(nullptr)));
         status = 0;
+        zoomStatus = 1;
         colPos = rand() % columns;
         linePos = rand() % lines;
         show();
@@ -24,13 +26,49 @@ struct Line {
         if (win != nullptr){
             switch(status){
             case 0 :
-                mvwaddch(win, linePos,colPos, '|'); break;
+                mvwaddch(win, linePos,colPos, '|'); 
+                if (zoomStatus > 1){
+                    for (unsigned int ind = 1; ind <zoomStatus; ind ++){
+                        mvwaddch(win, linePos+ind,colPos, '|'); 
+                    }
+                    for (unsigned int ind = 1; ind <zoomStatus; ind ++){
+                        mvwaddch(win, linePos-ind,colPos, '|'); 
+                    }
+                }
+                break;
             case 1 :
-                mvwaddch(win, linePos,colPos, '/'); break;
+                mvwaddch(win, linePos,colPos, '/');
+                if (zoomStatus > 1){
+                    for (unsigned int ind = 1; ind <zoomStatus; ind ++){
+                        mvwaddch(win, linePos+ind,colPos-ind, '/'); 
+                    }
+                    for (unsigned int ind = 1; ind <zoomStatus; ind ++){
+                        mvwaddch(win, linePos-ind,colPos+ind, '/'); 
+                    }
+                }
+                break;
             case 2 :
-                mvwaddch(win, linePos,colPos, '-'); break;
+                mvwaddch(win, linePos,colPos, '-'); 
+                if (zoomStatus > 1){
+                    for (unsigned int ind = 1; ind <zoomStatus; ind ++){
+                        mvwaddch(win, linePos,colPos+ind, '-'); 
+                    }
+                    for (unsigned int ind = 1; ind <zoomStatus; ind ++){
+                        mvwaddch(win, linePos,colPos-ind, '-'); 
+                    }
+                }
+                break;
             case 3 :
-                mvwaddch(win, linePos,colPos, '\\'); break;
+                mvwaddch(win, linePos,colPos, '\\'); 
+                if (zoomStatus > 1){
+                    for (unsigned int ind = 1; ind <zoomStatus; ind ++){
+                        mvwaddch(win, linePos-ind,colPos-ind, '\\'); 
+                    }
+                    for (unsigned int ind = 1; ind <zoomStatus; ind ++){
+                        mvwaddch(win, linePos+ind,colPos+ind, '\\'); 
+                    }
+                }
+                break;
         }
             wrefresh(win);
         }
@@ -52,15 +90,15 @@ struct Line {
                 break;
             case 's':
                 linePos += 1;
-                if (linePos >= lines){
-                    linePos = 0;
-                }
+                // if (linePos >= lines){
+                //     linePos = 0;
+                // }
                 break;
             case 'd':
                 colPos += 1;
-                if (colPos >= columns){
-                    colPos = 0;
-                }
+                // if (colPos >= columns){
+                //     colPos = 0;
+                // }
                 break;
             case 'l':
                 status += 1;
@@ -69,6 +107,14 @@ struct Line {
             case 'j':
                 status += 3;
                 status = status%4;
+                break;
+            case 'i':
+                zoomStatus +=1 ;
+                break;
+            case 'o':
+                if (zoomStatus >= 2){
+                    zoomStatus -=1 ;
+                }
                 break;
             default :
                 break;
@@ -88,7 +134,7 @@ int main(){
 
     WINDOW* win = newwin(lines, columns, 0, 0);
     wclear(win);
-    box(win, '|', '-');
+    // box(win, '|', '-');
     wrefresh(win);
 
 
@@ -97,7 +143,7 @@ int main(){
 
     Line lili(win, columns, lines);
     wclear(win);
-    box(win, '|', '-');
+    // box(win, '|', '-');
     wrefresh(win);
     lili.show();
 
@@ -105,7 +151,7 @@ int main(){
         do {
             lili.move(keyboard);
             wclear(win);
-            box(win, '|', '-');
+            // box(win, '|', '-');
             lili.show();
         
             keyboard = (char) getch();
