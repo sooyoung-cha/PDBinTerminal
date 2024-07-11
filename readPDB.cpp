@@ -2,13 +2,17 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <sstream>
 
-std::vector<double> readPDB(const std::string& filename, int& len) {
-    std::vector<double> qdata;
+struct Atom {
+    int pos;
+    double x, y, z;
+};
+
+std::vector<Atom> readPDB(const std::string& filename) {
+    std::vector<Atom> calphaAtoms;
     std::ifstream file(filename);
     std::string line;
-
-    std::vector<double> tempX, tempY, tempZ;
 
     while (std::getline(file, line)) {
         if (line.compare(0, 4, "ATOM") == 0 && line.size() > 54) {
@@ -16,25 +20,16 @@ std::vector<double> readPDB(const std::string& filename, int& len) {
                 double x = std::stod(line.substr(30, 8));
                 double y = std::stod(line.substr(38, 8));
                 double z = std::stod(line.substr(46, 8));
-                tempX.push_back(x);
-                tempY.push_back(y);
-                tempZ.push_back(z);
-                len++;
+                int pos = stoi(line.substr(22, 4))
+                calphaAtoms.push_back({, x, y, z});
             }
         }
     }
-    qdata.resize(3 * len);
-    for (int i = 0; i < len; i++) {
-        qdata[i] = tempX[i];
-        qdata[len + i] = tempY[i];
-        qdata[2 * len + i] = tempZ[i];
-    }
-    return qdata;
+    return calphaAtoms;
 }
 
 int main() {
     std::string filename = "example.pdb";
-    int len = 0;
-    std::vector<double> qdata = readPDB(filename, len);
+    std::vector<Atom> calphaAtoms = readPDB(filename);
     return 0;
 }
