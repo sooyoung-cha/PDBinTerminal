@@ -20,8 +20,8 @@ std::vector<Atom> readPDB(const std::string& filename) {
                 double x = std::stod(line.substr(30, 8));
                 double y = std::stod(line.substr(38, 8));
                 double z = std::stod(line.substr(46, 8));
-                int pos = stoi(line.substr(22, 4))
-                calphaAtoms.push_back({, x, y, z});
+                int pos = stoi(line.substr(22, 4));
+                calphaAtoms.push_back({x, y, z});
             }
         }
     }
