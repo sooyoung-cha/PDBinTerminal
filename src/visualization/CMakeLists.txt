@@ -5,12 +5,14 @@
 
 set(
     visualization_source_files
-    visualization/init.cpp
-    visualization/init.hpp
-    visualization/loop.cpp
-    visualization/loop.hpp
-    visualization/PDBLoader.cpp
-    visualization/PDBLoader.hpp
-    visualization/Screen.cpp
-    visualization/Screen.hpp
+    init.cpp
+    init.hpp
+    loop.cpp
+    loop.hpp
+    PDBLoader.cpp
+    PDBLoader.hpp
+    Screen.cpp
+    Screen.hpp
 )
+
+add_library(visualization ${visualization_source_files})
