@@ -26,6 +26,10 @@ void Protein::add_init_atoms(float x, float y, float z)
   m_last_atom_index++;
 }
 
+int Protein::get_length()
+{
+  return m_length;
+}
 
 Atom* Protein::get_init_atoms()
 {
