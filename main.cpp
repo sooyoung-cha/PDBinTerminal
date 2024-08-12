@@ -1,6 +1,6 @@
 #include <iostream>
-#include "src/init.hpp"
-#include "src/loop.hpp"
+#include "src/visualization/init.hpp"
+#include "src/visualization/loop.hpp"
 
 int main()
 {

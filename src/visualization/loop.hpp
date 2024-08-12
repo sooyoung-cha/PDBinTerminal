@@ -1,4 +1,7 @@
 #pragma once
 
 // get keyboard input and throw it to Protein instance
-void start();
+// void start();
+
+// for test
+int start();
