@@ -10,4 +10,4 @@ set(structure_source_files
     Protein.hpp
 )
 
-add_library(structures ${structure_source_files})
+add_library(structure ${structure_source_files})
