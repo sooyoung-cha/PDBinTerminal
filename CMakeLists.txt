@@ -6,5 +6,11 @@ project(
     LANGUAGES CXX #
 )
 
-set(CMAKE_CXX_STANDARD 11)
 add_subdirectory(src)
+set(structure visualization)
+
+foreach(LIBRARY ${LIBRARIES})
+  set(LIB_OBJS ${LIB_OBJS} $<TARGET_OBJECTS:${LIBRARY}>)
+endforeach()
+
+add_library(${PROJECT_NAME} STATIC ${LIB_OBJS})
