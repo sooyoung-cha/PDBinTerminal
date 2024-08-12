@@ -1,0 +1,2 @@
+/Library/Developer/CommandLineTools/usr/bin/ar qc libstructure.a CMakeFiles/structure.dir/Atom.cpp.o CMakeFiles/structure.dir/Protein.cpp.o
+/Library/Developer/CommandLineTools/usr/bin/ranlib libstructure.a
