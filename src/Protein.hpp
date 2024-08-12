@@ -5,17 +5,19 @@
 
 class Protein {
 public:
-  Protein();
-  void set_init_atoms(float , float , float );
+  Protein(int );
+  void set_init_atoms(float *, int );
   void add_init_atoms(float , float , float );
   Atom* get_init_atoms();
   Atom* get_on_screen_atoms();
   void rotate(float , float , float ); // TDB: parameters
   void shift(float , float , float ); // TDB: parameters
-  void zoome(float );  // TDB: parameters
+  void zoom(float );  // TDB: parameters
 private:
-  Atom* init_atoms;
-  Atom* on_screen_atoms;
+  Atom* m_init_atoms;
+  Atom* m_on_screen_atoms;
+  int m_last_atom_index;
+  int m_length;
 };
 
 #endif

@@ -1,4 +1,5 @@
-#include "ProteinData.hpp"
+#include "Protein.hpp"
+#include "Atom.hpp"
 
 #pragma once
 
