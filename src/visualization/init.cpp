@@ -1,3 +1,1 @@
-void init(){
-    return ;
-}
+#include "init.hpp"
