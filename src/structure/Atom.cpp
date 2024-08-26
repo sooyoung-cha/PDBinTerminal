@@ -1,4 +1,5 @@
 #include "Atom.hpp"
+#include <iostream>
 
 Atom::Atom()
 {
@@ -30,4 +31,9 @@ void Atom::set_position(float x, float y, float z)
   mX = x;
   mY = y;
   mZ = z;
+}
+
+void Atom::print_position()
+{
+  std::cout << "x: " << mX << ", y: " << mY << ", z: " << mZ << std::endl;
 }
