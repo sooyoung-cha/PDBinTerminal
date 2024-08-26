@@ -5,6 +5,10 @@
 #include "src/structure/Protein.hpp"
 // #include "src/structure/Atom.hpp"
 
+#ifdef OPENMP
+#include <omp.h>
+#endif
+
 int main()
 {
   // Atom a = Atom(0.5, 0.5, 3);
