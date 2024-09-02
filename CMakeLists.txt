@@ -8,7 +8,7 @@ endif ()
 
 add_subdirectory(src)
 add_executable(TerminalPDB main.cpp)
-target_link_libraries(TerminalPDB structure visualization)
+target_link_libraries(TerminalPDB structure visualization commons)
 
 # foreach(LIBRARY ${LIBRARIES})
 #   set(LIB_OBJS ${LIB_OBJS} $<TARGET_OBJECTS:${LIBRARY}>)
