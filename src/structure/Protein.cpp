@@ -16,6 +16,10 @@ void Protein::set_init_atoms(float* coords, int len)
   }
 }
 
+int Protein::get_length(){
+  return m_length;
+}
+
 void Protein::add_init_atoms(float x, float y, float z)
 {
   if (m_last_atom_index >= m_length)

@@ -12,5 +12,7 @@
 int main(int argc, char* argv[])
 {
   Manager manager(argc, argv);
+  manager.init();
+  manager.loop();
   return 0;
 }
