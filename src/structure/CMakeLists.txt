@@ -6,6 +6,8 @@
 set(structure_source_files
     Atom.cpp
     Atom.hpp
+    Parameters.cpp
+    Parameters.hpp
     Protein.cpp
     Protein.hpp
 )
