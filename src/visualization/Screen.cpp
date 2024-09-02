@@ -16,27 +16,22 @@ const float PI = 3.14159265359;
 //   void screen_plane_visualization();
 // };
 
-void Screen::set_protein(Protein* protein)
-{
+void Screen::set_protein(Protein* protein) {
   mProtein = protein;
 }
 
-Screen::Screen(int width, int height)
-{
+Screen::Screen(int width, int height) {
   SCREEN_WIDTH = width;
   SCREEN_HEIGHT  = height;
   ASPECT_RATIO = (float)SCREEN_WIDTH / SCREEN_HEIGHT;
   // std::vector<std::vector<char> > mScreen(SCREEN_HEIGHT, std::vector<char>(SCREEN_WIDTH, '_'));
   // mScreen = std::vector<std::vector<char>>(SCREEN_HEIGHT, std::vector<char>(SCREEN_WIDTH, '_'));
   mScreen = new char[SCREEN_HEIGHT*SCREEN_WIDTH];
-  for (int i = 0; i < SCREEN_HEIGHT; i++)
-  {
-    for (int j = 0; j < SCREEN_WIDTH; j++)
-    {
+  for (int i = 0; i < SCREEN_HEIGHT; i++) {
+    for (int j = 0; j < SCREEN_WIDTH; j++) {
       mScreen[i*SCREEN_WIDTH + j] = '_';
     }
   }
-
   // std::cout << mScreen[0] << std::endl;
 }
 
@@ -48,8 +43,7 @@ void Screen::project() {
 
   std::cout << "?" << std::endl;
   
-  for (int l = 0; l < L; l++)
-  {
+  for (int l = 0; l < L; l++) {
     // atoms[l].print_position();
     float* atom = atoms[l].get_position();
     float x = atom[0];
@@ -78,10 +72,8 @@ void Screen::drawScreen() {
 
     std::cout << "project done" << std::endl;
 
-    for (int i = 0; i < SCREEN_HEIGHT; i++)
-    {
-      for (int j = 0; j < SCREEN_WIDTH; j++)
-      {
+    for (int i = 0; i < SCREEN_HEIGHT; i++) {
+      for (int j = 0; j < SCREEN_WIDTH; j++) {
         std::cout << mScreen[i*SCREEN_WIDTH + j];
       }
       std::cout << "\n";
