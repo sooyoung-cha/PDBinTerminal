@@ -5,8 +5,6 @@
 
 set(
     visualization_source_files
-    init.cpp
-    init.hpp
     loop.cpp
     loop.hpp
     PDBLoader.cpp

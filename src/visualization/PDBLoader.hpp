@@ -13,5 +13,5 @@ class PDBLoader{
     public:
         PDBLoader(){ return; }
 
-        Protein load_data(string in_file);
+        Protein* load_data(string in_file);
 };

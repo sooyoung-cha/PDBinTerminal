@@ -21,11 +21,12 @@ class Manager{
 private:
   Parameters param;
   PDBLoader pdb_loader;
-  Protein data;
+  Protein* data;
   Screen screen;
 
 public:
   Manager(int argc, char* argv[]);
+  ~Manager();
 
   void init();
 

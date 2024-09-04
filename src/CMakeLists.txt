@@ -1,6 +1,8 @@
 include_directories(structure)
+include_directories(commons)
 add_subdirectory(structure)
 add_subdirectory(visualization)
+add_subdirectory(commons)
 
 find_package(OpenMP QUIET)
 if (OPENMP_FOUND)
