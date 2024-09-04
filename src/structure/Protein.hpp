@@ -10,10 +10,10 @@ public:
   void set_init_atoms(float *, int );
   void add_init_atoms(float , float , float );
   Atom* get_init_atoms();
-  Protein* get_on_screen_atoms();
+  // Protein* get_on_screen_atoms();
   int get_length();
   void rotate(int right, int back);
-  void shift(float, float, float);
+  // void shift(float, float, float);
   void zoom(float scale); 
 // private:
   Atom* m_init_atoms;
