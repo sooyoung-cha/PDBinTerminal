@@ -55,20 +55,30 @@ bool Manager::apply_user_input(){
             data->shift(0, 1, 0);
             break;
 
-        // Z, z
-        case 122:
-        case 90:
-            data->rotate(1, 0, 0);
+        // L, l
+        case 114:
+        case 154:
+            data->rotate(1, 0);
             break;  
-        // C, c
-        case 99:
-        case 67:
-            data->rotate(-1, 0, 0);
-            break;   
+        // J, j
+        case 112:
+        case 152:
+            data->rotate(-1, 0);
+            break;  
+        // I, i
+        case 111:
+        case 151:
+            data->rotate(0, 1);
+            break;  
+        // K, k
+        case 113:
+        case 153:
+            data->rotate(0, -1);
+            break;    
 
         // R, R
-        case 114:
-        case 82:
+        case 122:
+        case 162:
             data->zoom(-1);
             break;   
         // F, f
@@ -78,8 +88,8 @@ bool Manager::apply_user_input(){
             break;   
 
         // Q, q
-        case 113:
-        case 81:
+        case 121:
+        case 161:
             keep_show = false;
             break;
 

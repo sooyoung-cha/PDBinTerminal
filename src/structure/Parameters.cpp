@@ -1,4 +1,4 @@
-#pragma once
+// #pragma once
 #include "Parameters.hpp"
 
 Parameters::Parameters(int argc, char* argv[]) {

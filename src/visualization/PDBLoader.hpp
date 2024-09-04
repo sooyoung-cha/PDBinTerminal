@@ -2,13 +2,13 @@
 #include <iostream>
 #include <string>
 #include <fstream>
-#include "Protein.hpp"
+#include "../structure/Protein.hpp"
 
 
 using namespace std;
 
 class PDBLoader{
-    private:
+    // private:
 
     public:
         PDBLoader(){ return; }

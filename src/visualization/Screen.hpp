@@ -11,7 +11,7 @@ public:
   void set_coords(Atom* );
   void set_protein(Protein* );
   void drawScreen();
-private:
+// private:
   int SCREEN_WIDTH;
   int SCREEN_HEIGHT;
   float ASPECT_RATIO;

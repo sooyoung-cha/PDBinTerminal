@@ -1,6 +1,6 @@
 #pragma once
-#include "Protein.hpp"
-#include "Parameters.hpp"
+#include "../structure/Protein.hpp"
+#include "../structure/Parameters.hpp"
 #include "PDBLoader.hpp"
 #include "Screen.hpp"
 
@@ -11,15 +11,15 @@
 
 
 // get keyboard input and throw it to Protein instance
-void start(Protein data)
-{
-  // show the list of coordinates
-  // get keyboard
-  // show the list of the modified coordinates
-}
+// void start(Protein data)
+// {
+//   // show the list of coordinates
+//   // get keyboard
+//   // show the list of the modified coordinates
+// }
 
 class Manager{
-private:
+// private:
   Parameters param;
   PDBLoader pdb_loader;
   Protein* data;
