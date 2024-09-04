@@ -5,7 +5,7 @@
 using namespace std;
 
 class Parameters{
-    private:
+    // private:
         string in_file = "./test.pdb";
         string format = "pdb";
         string chains = "A";
