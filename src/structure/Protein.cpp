@@ -51,7 +51,7 @@ void Protein::zoom(float scale){
   return;
 }
 
-void Protein::rotate(int right, int back){
+void Protein::rotate(int right, int back) {
   float u[3][3];
   switch(right){
     case 1 :
@@ -84,5 +84,17 @@ void Protein::rotate(int right, int back){
       u[2][2] = 0.86602540378;
   }
   do_rotation(m_init_atoms, m_length, u);
-  return;
+}
+
+void shift(int right, int up) { 
+  float t[2]; //y, z
+  switch(right){
+    case 1 :
+    case -1:
+  }
+  switch(up){
+    case 1 :
+    case -1:
+  }
+  do_shift(m_init_atoms, m_length, t);
 }

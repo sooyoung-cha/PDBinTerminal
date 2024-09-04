@@ -35,25 +35,25 @@ bool Manager::apply_user_input(){
     bool keep_show = true;
     switch(getch()){
         // W, w
-        // case 119:
-        // case 87:
-        //     data->shift(-1, 0, 0);
-        //     break;
-        // // A, a
-        // case 97:
-        // case 65:
-        //     data->shift(0, -1, 0);
-        //     break;
-        // // S, s
-        // case 115:
-        // case 83:
-        //     data->shift(1, 0, 0);
-        //     break;      
-        // // D, d
-        // case 100:
-        // case 68:
-        //     data->shift(0, 1, 0);
-        //     break;
+        case 119:
+        case 87:
+            data->shift(0, 1);
+            break;
+        // A, a
+        case 97:
+        case 65:
+            data->shift(-1, 0);
+            break;
+        // S, s
+        case 115:
+        case 83:
+            data->shift(0,-1);
+            break;      
+        // D, d
+        case 100:
+        case 68:
+            data->shift(1,0);
+            break;
 
         // L, l
         case 114:
