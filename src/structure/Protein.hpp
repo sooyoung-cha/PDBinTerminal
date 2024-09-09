@@ -59,11 +59,13 @@ static void do_rotation( Atom* & x, int len, float u[3][3]) {
 }
 
 static void do_shift(Atom* & x, int len, float t[2]) {
-  simd_float t0 = simdf32_set(t[0]);
-  simd_float t1 = simdf32_set(t[1]);
-  simd_float x_x = simdf32_load(&x.x[i]);
-  simd_float x_y = simdf32_load(&x.y[i]);
-  simdf32_store(&x[i].mX, simdf32_add(x_x, t0));
-  simdf32_store(&x[i].mY, simdf32_add(x_y, t1));
+  for(int i=0; i<len; i+=VECSIZE_FLOAT) {
+    simd_float t0 = simdf32_set(t[0]);
+    simd_float t1 = simdf32_set(t[1]);
+    simd_float x_x = simdf32_load(&x[i].mX);
+    simd_float x_y = simdf32_load(&x[i].mY);
+    simdf32_store(&x[i].mX, simdf32_add(x_x, t0));
+    simdf32_store(&x[i].mY, simdf32_add(x_y, t1));
+  }
 }
 #endif

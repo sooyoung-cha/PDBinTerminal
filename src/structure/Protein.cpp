@@ -86,15 +86,26 @@ void Protein::rotate(int right, int back) {
   do_rotation(m_init_atoms, m_length, u);
 }
 
-void shift(int right, int up) { 
-  float t[2]; //y, z
+void Protein::shift(int right, int up) { 
+  float t[2];
   switch(right){
     case 1 :
+    //TODO: should change the value here
+      t[0] = 1;
+      t[1] = 0;
+      break;
     case -1:
+      t[0] = -1;
+      t[1] = 0;
   }
   switch(up){
     case 1 :
+      t[0] = 0;
+      t[1] = 1;
+      break;
     case -1:
+      t[0] = 0;
+      t[1] = -1;
   }
   do_shift(m_init_atoms, m_length, t);
 }
