@@ -23,7 +23,7 @@ void Manager::loop(){
 
     do{
         clear();
-        screen.set_protein(data->get_on_screen_atoms());        
+        // screen.set_protein(data->get_on_screen_atoms());        
         screen.drawScreen();        
         refresh();                         
     } while(apply_user_input());
@@ -37,22 +37,22 @@ bool Manager::apply_user_input(){
         // W, w
         case 119:
         case 87:
-            data->shift(-1, 0, 0);
+            data->shift(0, 1);
             break;
         // A, a
         case 97:
         case 65:
-            data->shift(0, -1, 0);
+            data->shift(-1, 0);
             break;
         // S, s
         case 115:
         case 83:
-            data->shift(1, 0, 0);
+            data->shift(0,-1);
             break;      
         // D, d
         case 100:
         case 68:
-            data->shift(0, 1, 0);
+            data->shift(1,0);
             break;
 
         // L, l
