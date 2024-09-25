@@ -5,10 +5,6 @@
 
 set(
     visualization_source_files
-    loop.cpp
-    loop.hpp
-    PDBLoader.cpp
-    PDBLoader.hpp
     Screen.cpp
     Screen.hpp
 )

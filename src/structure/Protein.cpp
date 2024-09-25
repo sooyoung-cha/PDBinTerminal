@@ -1,48 +1,49 @@
 #include "Protein.hpp"
 #include "Atom.hpp"
+#include <fstream>
+#include <iostream>
 
-Protein::Protein(int length)
-{
-    m_init_atoms = new Atom[length];
-    m_length = length;
-    m_last_atom_index = 0;
+Protein::Protein(const std::string& in_file) {
+    load_data(in_file); 
+    m_last_atom_index = m_init_atoms.size();  
 }
 
-void Protein::set_init_atoms(float* coords, int len)
-{
-  for (int i = 0; i < len; i++)
-  {
-    add_init_atoms(coords[0], coords[1], coords[2]);
-  }
+void Protein::load_data(const std::string& in_file) {
+    std::ifstream openFile(in_file);
+    if (!openFile.is_open()) {
+        std::cerr << "Error opening file: " << in_file << std::endl;
+        return;
+    }
+
+    std::string line;
+    while (getline(openFile, line)) {
+        if (line.substr(0, 4) == "ATOM" && line.substr(13, 2) == "CA") {
+            float x = std::stof(line.substr(30, 8));
+            float y = std::stof(line.substr(38, 8));
+            float z = std::stof(line.substr(46, 8));
+
+            Atom new_atom;
+            new_atom.mX = x;
+            new_atom.mY = y;
+            new_atom.mZ = z;
+
+            m_init_atoms.push_back(new_atom);
+            m_on_screen_atoms.push_back(new_atom);
+        }
+    }
+    openFile.close();
 }
 
-int Protein::get_length(){
-  return m_length;
+int Protein::get_length() const {
+    return m_init_atoms.size();
 }
 
-void Protein::add_init_atoms(float x, float y, float z)
-{
-  if (m_last_atom_index >= m_length)
-  {
-    return;
-  }
-  m_init_atoms[m_last_atom_index].set_position(x, y, z);
-  m_last_atom_index++;
+const std::vector<Atom>& Protein::get_init_atoms() const {
+    return m_init_atoms;  
 }
 
-
-Atom* Protein::get_init_atoms()
-{
-  Atom* atoms = new Atom[m_last_atom_index];
-  float* coords = new float[3];
-
-  for (int i = 0; i < m_last_atom_index; i++)
-  {
-    coords = m_init_atoms[i].get_position();
-    atoms[i].set_position(coords[0], coords[1], coords[2]);
-  }
-
-  return atoms;
+const std::vector<Atom>& Protein::get_on_screen_atoms() const {
+    return m_on_screen_atoms;  // 화면에 표시할 Atom 벡터 반환
 }
 
 void Protein::zoom(float scale){
@@ -83,7 +84,7 @@ void Protein::rotate(int right, int back) {
       u[2][0] = 0.5;
       u[2][2] = 0.86602540378;
   }
-  do_rotation(m_init_atoms, m_length, u);
+  do_rotation(get_on_screen_atoms(), u);
 }
 
 void Protein::shift(int right, int up) { 
@@ -107,5 +108,5 @@ void Protein::shift(int right, int up) {
       t[0] = 0;
       t[1] = -1;
   }
-  do_shift(m_init_atoms, m_length, t);
+  do_shift(get_on_screen_atoms(), t);
 }

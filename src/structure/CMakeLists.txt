@@ -4,7 +4,6 @@
 # target_include_directories(${PROJECT_NAME} public ${CMAKE_SOURCE_DIR}/src)
 
 set(structure_source_files
-    Atom.cpp
     Atom.hpp
     Parameters.cpp
     Parameters.hpp
