@@ -25,8 +25,6 @@ private:
   void load_data(const std::string& in_file);  // PDB 파일을 읽는 함수
 };
 
-#include <vector>
-
 static void do_rotation(const std::vector<Atom>& atoms, float u[3][3]) {
     int len = atoms.size();
     simd_float u00 = simdf32_set(u[0][0]);

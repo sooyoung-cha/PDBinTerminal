@@ -20,7 +20,7 @@ void Screen::set_protein(Protein* protein) {
 
 void Screen::project() {
     float fovRad = 1.0 / tan(FOV * 0.5 / 180.0 * PI);
-    const std::vector<Atom>& atoms = mProtein->get_on_screen_atoms();  // Atom 벡터 가져오기
+    const std::vector<Atom>& atoms = mProtein->get_on_screen_atoms();  
 
     clear_screen();
 
@@ -48,10 +48,10 @@ void Screen::clear_screen() {
 void Screen::print_screen() {
     for (int i = 0; i < SCREEN_HEIGHT; i++) {
         for (int j = 0; j < SCREEN_WIDTH; j++) {
-            mvaddch(i, j, mScreen[i * SCREEN_WIDTH + j]); // ncurses의 mvaddch 사용
+            mvaddch(i, j, mScreen[i * SCREEN_WIDTH + j]); 
         }
     }
-    refresh(); // 화면 업데이트
+    refresh(); /
 }
 
 void Screen::drawScreen() {
@@ -108,7 +108,6 @@ bool Screen::handle_input() {
             keep_show = false;
             break;
         default:
-            // ncurses에서는 메시지를 출력할 때 printw를 사용해야 합니다.
             mvprintw(LINES - 1, 0, "Invalid input. Please try again."); 
             break;
     }
