@@ -26,7 +26,7 @@ void Manager::loop(){
         // screen.set_protein(data->get_on_screen_atoms());        
         screen.drawScreen();        
         refresh();                         
-    } while(apply_user_input());
+    }while(apply_user_input());
 
     endwin();
 }
