@@ -51,7 +51,7 @@ void Screen::print_screen() {
             mvaddch(i, j, mScreen[i * SCREEN_WIDTH + j]); 
         }
     }
-    refresh(); /
+    refresh();
 }
 
 void Screen::drawScreen() {

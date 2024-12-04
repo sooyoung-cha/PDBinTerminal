@@ -54,59 +54,69 @@ void Protein::zoom(float scale){
 
 void Protein::rotate(int right, int back) {
   float u[3][3];
-  switch(right){
-    case 1 :
-      u[0][0] = 1;
-      u[1][1] = 0.86602540378;
-      u[1][2] = -0.5;
-      u[2][1] = 0.5;
-      u[2][2] = 0.86602540378;
-      break;
-    case -1 :
-      u[0][0] = 1;
-      u[1][1] = 0.86602540378;
-      u[1][2] = 0.5;
-      u[2][1] = -0.5;
-      u[2][2] = 0.86602540378;
-  }
-  switch(back){
-    case 1:
-      u[0][0] = 0.86602540378;
-      u[0][2] = 0.5;
-      u[1][1] = 1;
-      u[2][0] = -0.5;
-      u[2][2] = 0.86602540378;
-      break;
-    case -1:
-      u[0][0] = 0.86602540378;
-      u[0][2] = -0.5;
-      u[1][1] = 1;
-      u[2][0] = 0.5;
-      u[2][2] = 0.86602540378;
+  if (back == 0 ){
+    switch(right){
+      case 1 :
+        u[0][0] = 1;
+        u[1][1] = 0.86602540378; //cos 30
+        u[1][2] = -0.5;
+        u[2][1] = 0.5; // sin 30
+        u[2][2] = 0.86602540378;
+        break;
+      case -1 :
+        u[0][0] = 1;
+        u[1][1] = 0.86602540378;
+        u[1][2] = 0.5;
+        u[2][1] = -0.5;
+        u[2][2] = 0.86602540378;
+        break;
+    }
+  } else {
+    switch(back){
+      case 1:
+        u[0][0] = 0.86602540378;
+        u[0][2] = 0.5;
+        u[1][1] = 1;
+        u[2][0] = -0.5;
+        u[2][2] = 0.86602540378;
+        break;
+      case -1:
+        u[0][0] = 0.86602540378;
+        u[0][2] = -0.5;
+        u[1][1] = 1;
+        u[2][0] = 0.5;
+        u[2][2] = 0.86602540378;
+        break;
+    }
   }
   do_rotation(get_on_screen_atoms(), u);
 }
 
 void Protein::shift(int right, int up) { 
   float t[2];
-  switch(right){
-    case 1 :
-    //TODO: should change the value here
-      t[0] = 1;
-      t[1] = 0;
-      break;
-    case -1:
-      t[0] = -1;
-      t[1] = 0;
-  }
-  switch(up){
-    case 1 :
-      t[0] = 0;
-      t[1] = 1;
-      break;
-    case -1:
-      t[0] = 0;
-      t[1] = -1;
+  if (up == 0) {
+    switch(right){
+      case 1 :
+      //TODO: should change the value here
+        t[0] = 1;
+        t[1] = 0;
+        break;
+      case -1:
+        t[0] = -1;
+        t[1] = 0;
+        break;
+    }
+  } else {
+    switch(up){
+      case 1 :
+        t[0] = 0;
+        t[1] = 1;
+        break;
+      case -1:
+        t[0] = 0;
+        t[1] = -1;
+        break;
+    }
   }
   do_shift(get_on_screen_atoms(), t);
 }
