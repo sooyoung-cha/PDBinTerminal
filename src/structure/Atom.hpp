@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 
-struct Atom {
+struct alignas(16) Atom {
     mutable float mX;
     mutable float mY;
     mutable float mZ;

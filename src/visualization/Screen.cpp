@@ -7,48 +7,57 @@ const float FOV = 90.0;
 const float PI = 3.14159265359;
 
 Screen::Screen(int width, int height) {
-    SCREEN_WIDTH = width;
-    SCREEN_HEIGHT = height;
-    ASPECT_RATIO = (float)SCREEN_WIDTH / SCREEN_HEIGHT;
-    mScreen = new char[SCREEN_HEIGHT * SCREEN_WIDTH];
+    screen_width = width;
+    screen_height = height;
+    aspect_ratio = (float)screen_width / screen_height;
+    mScreen = new char[screen_height * screen_width];
+    zoom_level = 1;
     clear_screen();
 }
 
 void Screen::set_protein(Protein* protein) {
-  mProtein = protein;
+  data = protein;
+}
+
+void Screen::set_zoom_level(int zoom){
+    if ((zoom_level + zoom > 0)&&(zoom_level + zoom < 10)){
+        zoom_level += zoom;
+    }
 }
 
 void Screen::project() {
     float fovRad = 1.0 / tan(FOV * 0.5 / 180.0 * PI);
-    const std::vector<Atom>& atoms = mProtein->get_on_screen_atoms();  
+    const std::vector<Atom>& atoms = data->get_on_screen_atoms();  
 
     clear_screen();
+    std::cout << "On Screen Atoms: " << atoms.size() << std::endl;
 
     for (const auto& atom : atoms) {
         float* position = atom.get_position();
-        float x = position[0];
-        float y = position[1];
-        float z = position[2];
-        float projectedX = (x / z) * fovRad * ASPECT_RATIO;
+        float x = position[0] * zoom_level;
+        float y = position[1] * zoom_level;
+        float z = position[2] * zoom_level;
+        float projectedX = (x / z) * fovRad * aspect_ratio;
         float projectedY = (y / z) * fovRad;
-        int screenX = (int)((projectedX + 1.0) * 0.5 * SCREEN_WIDTH);
-        int screenY = (int)((1.0 - projectedY) * 0.5 * SCREEN_HEIGHT);
+        int screenX = (int)((projectedX + 1.0) * 0.5 * screen_width);
+        int screenY = (int)((1.0 - projectedY) * 0.5 * screen_height);
 
-        if (screenX >= 0 && screenX < SCREEN_WIDTH && screenY >= 0 && screenY < SCREEN_HEIGHT) {
-            mScreen[screenY * SCREEN_WIDTH + screenX] = '*';
+        if (screenX >= 0 && screenX < screen_width && screenY >= 0 && screenY < screen_height) {
+            mScreen[screenY * screen_width + screenX] = '*';
         }
     }
+    std::cout << "Projecting done" << std::endl;
 }
 
 void Screen::clear_screen() {
     clear(); 
-    std::fill(mScreen, mScreen + SCREEN_HEIGHT * SCREEN_WIDTH, '_');
+    std::fill(mScreen, mScreen + screen_height * screen_width, '_');
 }
 
 void Screen::print_screen() {
-    for (int i = 0; i < SCREEN_HEIGHT; i++) {
-        for (int j = 0; j < SCREEN_WIDTH; j++) {
-            mvaddch(i, j, mScreen[i * SCREEN_WIDTH + j]); 
+    for (int i = 0; i < screen_height; i++) {
+        for (int j = 0; j < screen_width; j++) {
+            mvaddch(i, j, mScreen[i * screen_width + j]); 
         }
     }
     refresh();
@@ -59,58 +68,66 @@ void Screen::drawScreen() {
     print_screen();
 }
 
-bool Screen::handle_input() {
+bool Screen::handle_input(){
     bool keep_show = true;
+    switch(getch()){
+        // W, w (y 축 양의 이동)
+        case 119:
+        case 87:
+            data->set_shift(0, 1, 0);
+            break;
+        // A, a (x 축 음의 이동)
+        case 97:
+        case 65:
+            data->set_shift(-1, 0, 0);
+            break;
+        // S, s (y 축 음의 이동)
+        case 115:
+        case 83:
+            data->set_shift(0, -1, 0);
+            break;      
+        // D, d (x 축 양의 이동)
+        case 100:
+        case 68:
+            data->set_shift(1, 0, 0);
+            break;
 
-    switch (getch()) {
-        case 'w':
-        case 'W':
-            mProtein->shift(0, 1);
-            break;
-        case 'a':
-        case 'A':
-            mProtein->shift(-1, 0);
-            break;
-        case 's':
-        case 'S':
-            mProtein->shift(0, -1);
-            break;
-        case 'd':
-        case 'D':
-            mProtein->shift(1, 0);
-            break;
-        case 'r':
-        case 'R':
-            mProtein->rotate(1, 0);
-            break;
-        case 'j':
-        case 'J':
-            mProtein->rotate(-1, 0);
-            break;
-        case 'i':
-        case 'I':
-            mProtein->rotate(0, 1);
-            break;
-        case 'k':
-        case 'K':
-            mProtein->rotate(0, -1);
-            break;
-        case 'z':
-        case 'Z':
-            mProtein->zoom(-1);
-            break;
-        case 'f':
-        case 'F':
-            mProtein->zoom(1);
-            break;
-        case 'q':
-        case 'Q':
+        // X, x (x 축 중심 회전)
+        case 120:
+        case 88:
+            data->set_rotate(1, 0, 0);
+            break;  
+        // Y, y (y 축 중심 회전)
+        case 121:
+        case 89:
+            data->set_rotate(0, 1, 0);
+            break;  
+        // Z, z (z 축 중심 회전)
+        case 122:
+        case 90:
+            data->set_rotate(0, 0, 1);
+            break;  
+
+        // R, R (줌 인)
+        case 114:
+        case 82:
+            set_zoom_level(-1);
+            break;   
+        // F, f (줌 아웃)
+        case 102:
+        case 70:
+            set_zoom_level(1);
+            break;   
+
+        // Q, q
+        case 113:
+        case 81:
             keep_show = false;
             break;
+
         default:
-            mvprintw(LINES - 1, 0, "Invalid input. Please try again."); 
-            break;
-    }
+            break;       
+    }     
 
     return keep_show;
 }

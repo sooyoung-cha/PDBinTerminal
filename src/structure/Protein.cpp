@@ -2,10 +2,23 @@
 #include "Atom.hpp"
 #include <fstream>
 #include <iostream>
+#include <cmath>
 
 Protein::Protein(const std::string& in_file) {
     load_data(in_file); 
-    m_last_atom_index = m_init_atoms.size();  
+    return;
+}
+
+std::vector<Atom>& Protein::get_init_atoms() {
+    return init_atoms;  
+}
+
+std::vector<Atom>& Protein::get_on_screen_atoms() {
+    return on_screen_atoms; 
+}
+
+int Protein::get_length(){
+    return init_atoms.size();
 }
 
 void Protein::load_data(const std::string& in_file) {
@@ -27,96 +40,115 @@ void Protein::load_data(const std::string& in_file) {
             new_atom.mY = y;
             new_atom.mZ = z;
 
-            m_init_atoms.push_back(new_atom);
-            m_on_screen_atoms.push_back(new_atom);
+            init_atoms.push_back(new_atom);
+            on_screen_atoms.push_back(new_atom);
         }
     }
     openFile.close();
+    return;
 }
 
-int Protein::get_length() const {
-    return m_init_atoms.size();
-}
+void Protein::set_rotate(int x_rotate, int y_rotate, int z_rotate){
+    const float PI = 3.14159265359;
+    std::cout << "Rotate: " << x_rotate << " " << y_rotate << " " << z_rotate << std::endl;
 
-const std::vector<Atom>& Protein::get_init_atoms() const {
-    return m_init_atoms;  
-}
-
-const std::vector<Atom>& Protein::get_on_screen_atoms() const {
-    return m_on_screen_atoms;  // 화면에 표시할 Atom 벡터 반환
-}
-
-void Protein::zoom(float scale){
-  zoom_level += scale;
-
-  return;
-}
-
-void Protein::rotate(int right, int back) {
-  float u[3][3];
-  if (back == 0 ){
-    switch(right){
-      case 1 :
-        u[0][0] = 1;
-        u[1][1] = 0.86602540378; //cos 30
-        u[1][2] = -0.5;
-        u[2][1] = 0.5; // sin 30
-        u[2][2] = 0.86602540378;
-        break;
-      case -1 :
-        u[0][0] = 1;
-        u[1][1] = 0.86602540378;
-        u[1][2] = 0.5;
-        u[2][1] = -0.5;
-        u[2][2] = 0.86602540378;
-        break;
+    if (x_rotate != 0) {
+        float rotate_mat[3][3] = {
+            {1, 0, 0},
+            {0, cos(x_rotate * PI / 6), -sin(x_rotate * PI / 6)},
+            {0, sin(x_rotate * PI / 6), cos(x_rotate * PI / 6)}
+        };
+        do_rotation(rotate_mat);
     }
-  } else {
-    switch(back){
-      case 1:
-        u[0][0] = 0.86602540378;
-        u[0][2] = 0.5;
-        u[1][1] = 1;
-        u[2][0] = -0.5;
-        u[2][2] = 0.86602540378;
-        break;
-      case -1:
-        u[0][0] = 0.86602540378;
-        u[0][2] = -0.5;
-        u[1][1] = 1;
-        u[2][0] = 0.5;
-        u[2][2] = 0.86602540378;
-        break;
+    else if (y_rotate != 0) {
+        float rotate_mat[3][3] = {
+            {cos(y_rotate * PI / 6), 0, sin(y_rotate * PI / 6)},
+            {0, 1, 0},
+            {-sin(y_rotate * PI / 6), 0, cos(y_rotate * PI / 6)}
+        };
+        do_rotation(rotate_mat);
     }
-  }
-  do_rotation(get_on_screen_atoms(), u);
+    else if (z_rotate != 0) {
+        float rotate_mat[3][3] = {
+          {cos(z_rotate * PI / 6), -sin(z_rotate * PI / 6), 0},
+          {sin(z_rotate * PI / 6), cos(z_rotate * PI / 6), 0},
+          {0, 0, 1}
+        };
+        do_rotation(rotate_mat);
+    }
+
+    std::cout << "Rotate done" << std::endl;
+
+    return;
 }
 
-void Protein::shift(int right, int up) { 
-  float t[2];
-  if (up == 0) {
-    switch(right){
-      case 1 :
-      //TODO: should change the value here
-        t[0] = 1;
-        t[1] = 0;
-        break;
-      case -1:
-        t[0] = -1;
-        t[1] = 0;
-        break;
+void Protein::do_rotation(float rotate_mat[3][3]) {
+    int len = on_screen_atoms.size();
+    simd_float u00 = simdf32_set(rotate_mat[0][0]);
+    simd_float u01 = simdf32_set(rotate_mat[0][1]);
+    simd_float u02 = simdf32_set(rotate_mat[0][2]);
+    simd_float u10 = simdf32_set(rotate_mat[1][0]);
+    simd_float u11 = simdf32_set(rotate_mat[1][1]);
+    simd_float u12 = simdf32_set(rotate_mat[1][2]);
+    simd_float u20 = simdf32_set(rotate_mat[2][0]);
+    simd_float u21 = simdf32_set(rotate_mat[2][1]);
+    simd_float u22 = simdf32_set(rotate_mat[2][2]);
+
+    for (int i = 0; i < len / VECSIZE_FLOAT * VECSIZE_FLOAT; i += VECSIZE_FLOAT) {
+        simd_float x_x = simdf32_load(&on_screen_atoms[i].mX);
+        simd_float x_y = simdf32_load(&on_screen_atoms[i].mY);
+        simd_float x_z = simdf32_load(&on_screen_atoms[i].mZ);
+
+        simd_float xx = simdf32_add(simdf32_mul(u00, x_x), simdf32_add(simdf32_mul(u01, x_y), simdf32_mul(u02, x_z)));
+        simd_float yy = simdf32_add(simdf32_mul(u10, x_x), simdf32_add(simdf32_mul(u11, x_y), simdf32_mul(u12, x_z)));
+        simd_float zz = simdf32_add(simdf32_mul(u20, x_x), simdf32_add(simdf32_mul(u21, x_y), simdf32_mul(u22, x_z)));
+
+        simdf32_store(&on_screen_atoms[i].mX, xx);
+        simdf32_store(&on_screen_atoms[i].mY, yy);
+        simdf32_store(&on_screen_atoms[i].mZ, zz);
     }
-  } else {
-    switch(up){
-      case 1 :
-        t[0] = 0;
-        t[1] = 1;
-        break;
-      case -1:
-        t[0] = 0;
-        t[1] = -1;
-        break;
+
+    for (int i = len - (len % VECSIZE_FLOAT); i < len; ++i) {
+        float x = on_screen_atoms[i].mX;
+        float y = on_screen_atoms[i].mY;
+        float z = on_screen_atoms[i].mZ;
+        on_screen_atoms[i].mX = rotate_mat[0][0] * x + rotate_mat[0][1] * y + rotate_mat[0][2] * z;
+        on_screen_atoms[i].mY = rotate_mat[1][0] * x + rotate_mat[1][1] * y + rotate_mat[1][2] * z;
+        on_screen_atoms[i].mZ = rotate_mat[2][0] * x + rotate_mat[2][1] * y + rotate_mat[2][2] * z;
     }
-  }
-  do_shift(get_on_screen_atoms(), t);
+
+    return;
+}
+
+void Protein::set_shift(int shift_x, int shift_y, int shift_z) { 
+    std::cout << "Shift: " << shift_x << " " << shift_y << " " << shift_z << std::endl;
+    float shift_mat[3] = {shift_x, shift_y, shift_z};
+    do_shift(shift_mat);
+    std::cout << "Shift done" << std::endl;
+
+    return;
+}
+
+void Protein::do_shift(float shift_mat[3]) {
+    int len = on_screen_atoms.size();
+    simd_float t0 = simdf32_set(shift_mat[0]);
+    simd_float t1 = simdf32_set(shift_mat[1]);
+    simd_float t2 = simdf32_set(shift_mat[2]);
+
+    for (int i = 0; i < len / VECSIZE_FLOAT * VECSIZE_FLOAT; i += VECSIZE_FLOAT) {
+        simd_float x_x = simdf32_load(&on_screen_atoms[i].mX);
+        simd_float x_y = simdf32_load(&on_screen_atoms[i].mY);
+        simd_float x_z = simdf32_load(&on_screen_atoms[i].mZ);
+
+        simdf32_store(&on_screen_atoms[i].mX, simdf32_add(x_x, t0));
+        simdf32_store(&on_screen_atoms[i].mY, simdf32_add(x_y, t1));
+        simdf32_store(&on_screen_atoms[i].mZ, simdf32_add(x_z, t2));
+    }
+
+    for (int i = len - (len % VECSIZE_FLOAT); i < len; ++i) {
+        on_screen_atoms[i].mX += shift_mat[0];
+        on_screen_atoms[i].mY += shift_mat[1];
+        on_screen_atoms[i].mZ += shift_mat[2];
+    }
+    return;
 }
