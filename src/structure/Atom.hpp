@@ -1,10 +1,10 @@
 #pragma once
 #include <iostream>
 
-struct alignas(16) Atom {
-    mutable float mX;
-    mutable float mY;
-    mutable float mZ;
+struct alignas(4) Atom {
+    float mX;
+    float mY;
+    float mZ;
 
     Atom(float x, float y, float z) : mX(x), mY(y), mZ(z) {}
     Atom() : mX(0), mY(0), mZ(0) {}
