@@ -19,14 +19,15 @@ void Screen::set_protein(Protein* protein) {
   data = protein;
 }
 
-void Screen::set_zoom_level(int zoom){
-    if ((zoom_level + zoom > 0)&&(zoom_level + zoom < 10)){
+void Screen::set_zoom_level(float zoom){
+    if ((zoom_level + zoom > 0.3)&&(zoom_level + zoom < 2)){
         zoom_level += zoom;
     }
 }
 
 void Screen::project() {
-    float fovRad = 1.0 / tan(FOV * 0.5 / 180.0 * PI);
+    float adjustedFOV = FOV / zoom_level;
+    float fovRad = 1.0 / tan(adjustedFOV * 0.5 / 180.0 * PI);
     const std::vector<Atom>& atoms = data->get_on_screen_atoms();  
 
     clear_screen();
@@ -34,9 +35,10 @@ void Screen::project() {
 
     for (const auto& atom : atoms) {
         float* position = atom.get_position();
-        float x = position[0] * zoom_level;
-        float y = position[1] * zoom_level;
-        float z = position[2] * zoom_level;
+        float x = position[0];
+        float y = position[1];
+        float z = position[2];
+
         float projectedX = (x / z) * fovRad * aspect_ratio;
         float projectedY = (y / z) * fovRad;
         int screenX = (int)((projectedX + 1.0) * 0.5 * screen_width);
@@ -111,12 +113,12 @@ bool Screen::handle_input(){
         // R, R (줌 인)
         case 114:
         case 82:
-            set_zoom_level(-1);
+            set_zoom_level(-0.05);
             break;   
         // F, f (줌 아웃)
         case 102:
         case 70:
-            set_zoom_level(1);
+            set_zoom_level(0.05);
             break;   
 
         // Q, q
