@@ -20,7 +20,7 @@ void Screen::set_protein(Protein* protein) {
 }
 
 void Screen::set_zoom_level(float zoom){
-    if ((zoom_level + zoom > 0.3)&&(zoom_level + zoom < 2)){
+    if ((zoom_level + zoom > 0.5)&&(zoom_level + zoom < 1.5)){
         zoom_level += zoom;
     }
 }
