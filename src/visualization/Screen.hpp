@@ -9,15 +9,17 @@ class Screen {
 public:
     Screen(int width, int height);
     void set_protein(Protein* protein);
-    void drawScreen();
+    void set_zoom_level(int zoom);
     bool handle_input();
+    void drawScreen();
 
 private:
-    int SCREEN_WIDTH;
-    int SCREEN_HEIGHT;
-    float ASPECT_RATIO;
+    int screen_width;
+    int screen_height;
+    float aspect_ratio;
+    int zoom_level;
     char* mScreen;
-    Protein* mProtein;
+    Protein* data;
 
     void project();
     void clear_screen();
