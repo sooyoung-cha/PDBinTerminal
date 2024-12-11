@@ -31,7 +31,7 @@ void Screen::project() {
     const std::vector<Atom>& atoms = data->get_on_screen_atoms();  
 
     clear_screen();
-    std::cout << "On Screen Atoms: " << atoms.size() << std::endl;
+    // std::cout << "On Screen Atoms: " << atoms.size() << std::endl;
 
     for (const auto& atom : atoms) {
         float* position = atom.get_position();
@@ -48,7 +48,7 @@ void Screen::project() {
             mScreen[screenY * screen_width + screenX] = '*';
         }
     }
-    std::cout << "Projecting done" << std::endl;
+    // std::cout << "Projecting done" << std::endl;
 }
 
 void Screen::clear_screen() {
