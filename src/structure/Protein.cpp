@@ -82,7 +82,7 @@ void Protein::set_rotate(int x_rotate, int y_rotate, int z_rotate){
 }
 
 void Protein::do_rotation(float rotate_mat[3][3]) {
-    int len = on_screen_atoms.size();
+    int len = get_length();
     // simd_float u00 = simdf32_set(rotate_mat[0][0]);
     // simd_float u01 = simdf32_set(rotate_mat[0][1]);
     // simd_float u02 = simdf32_set(rotate_mat[0][2]);
@@ -129,8 +129,7 @@ void Protein::set_shift(int shift_x, int shift_y, int shift_z) {
 }
 
 void Protein::do_shift(float shift_mat[3]) {
-
-    int len = on_screen_atoms.size();
+    int len = get_length();
     for (int i = 0; i < len; ++i) { 
         on_screen_atoms[i].mX += shift_mat[0];
         on_screen_atoms[i].mY += shift_mat[1];
