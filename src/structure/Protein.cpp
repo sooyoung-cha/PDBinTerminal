@@ -89,24 +89,30 @@ void Protein::rotate(int right, int back) {
 
 void Protein::shift(int right, int up) { 
   float t[2];
-  switch(right){
+  switch (right){
     case 1 :
     //TODO: should change the value here
-      t[0] = 1;
-      t[1] = 0;
-      break;
-    case -1:
       t[0] = -1;
       t[1] = 0;
+      break;
+    case -1:
+      t[0] = 1;
+      t[1] = 0;
   }
-  switch(up){
+  switch (up){
     case 1 :
       t[0] = 0;
-      t[1] = 1;
+      t[1] = -1;
       break;
     case -1:
       t[0] = 0;
-      t[1] = -1;
+      t[1] = 1;
   }
   do_shift(get_on_screen_atoms(), t);
+}
+
+void Protein::print() {
+  for (int i = 0; i < m_last_atom_index; i++) {
+    m_on_screen_atoms[i].print_position();
+  }
 }

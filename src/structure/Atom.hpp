@@ -1,5 +1,9 @@
 #pragma once
 #include <iostream>
+#include <cstdio>
+#include <cstdlib> // For malloc and free
+#include <ncurses.h>
+
 
 struct Atom {
     mutable float mX;
@@ -24,6 +28,17 @@ struct Atom {
     }
 
     void print_position() {
-        std::cout << "x: " << mX << ", y: " << mY << ", z: " << mZ << std::endl;
+        char* result;
+
+        // Calculate the required size for the string
+        int size = snprintf(nullptr, 0, "x: %.2f, y: %.2f, z: %.2f", mX, mY, mZ) + 1;
+
+        // Allocate memory dynamically
+        result = (char*)malloc(size);
+
+        // Generate the string
+        snprintf(result, size, "x: %.2f, y: %.2f, z: %.2f", mX, mY, mZ);
+        mvprintw(LINES - 1, 0, result); 
+        // std::cout << "x: " << mX << ", y: " << mY << ", z: " << mZ << std::endl;
     }
 };

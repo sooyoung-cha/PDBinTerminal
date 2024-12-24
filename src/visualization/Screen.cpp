@@ -11,6 +11,7 @@ Screen::Screen(int width, int height) {
     SCREEN_HEIGHT = height;
     ASPECT_RATIO = (float)SCREEN_WIDTH / SCREEN_HEIGHT;
     mScreen = new char[SCREEN_HEIGHT * SCREEN_WIDTH];
+    // 주석 해제
     clear_screen();
 }
 
@@ -55,8 +56,12 @@ void Screen::print_screen() {
 }
 
 void Screen::drawScreen() {
+    // 주석 해제
     project();
     print_screen();
+
+    // 주석
+    // mProtein->print();
 }
 
 bool Screen::handle_input() {

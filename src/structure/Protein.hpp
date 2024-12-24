@@ -15,6 +15,7 @@ public:
   void rotate(int right, int back);
   void shift(int right, int up);
   void zoom(float scale); 
+  void print();
 
 private:
   std::vector<Atom> m_init_atoms; 
