@@ -49,28 +49,29 @@ void Protein::load_data(const std::string& in_file) {
 
 void Protein::set_rotate(int x_rotate, int y_rotate, int z_rotate){
     const float PI = 3.14159265359;
+    const float UNIT = 12;
     std::cout << "Rotate: " << x_rotate << " " << y_rotate << " " << z_rotate << std::endl;
 
     if (x_rotate != 0) {
         float rotate_mat[3][3] = {
             {1, 0, 0},
-            {0, cos(x_rotate * PI / 6), -sin(x_rotate * PI / 6)},
-            {0, sin(x_rotate * PI / 6), cos(x_rotate * PI / 6)}
+            {0, cos(x_rotate * PI / UNIT), -sin(x_rotate * PI / UNIT)},
+            {0, sin(x_rotate * PI / UNIT), cos(x_rotate * PI / UNIT)}
         };
         do_rotation(rotate_mat);
     }
     else if (y_rotate != 0) {
         float rotate_mat[3][3] = {
-            {cos(y_rotate * PI / 6), 0, sin(y_rotate * PI / 6)},
+            {cos(y_rotate * PI / UNIT), 0, sin(y_rotate * PI / UNIT)},
             {0, 1, 0},
-            {-sin(y_rotate * PI / 6), 0, cos(y_rotate * PI / 6)}
+            {-sin(y_rotate * PI / UNIT), 0, cos(y_rotate * PI / UNIT)}
         };
         do_rotation(rotate_mat);
     }
     else if (z_rotate != 0) {
         float rotate_mat[3][3] = {
-          {cos(z_rotate * PI / 6), -sin(z_rotate * PI / 6), 0},
-          {sin(z_rotate * PI / 6), cos(z_rotate * PI / 6), 0},
+          {cos(z_rotate * PI / UNIT), -sin(z_rotate * PI / UNIT), 0},
+          {sin(z_rotate * PI / UNIT), cos(z_rotate * PI / UNIT), 0},
           {0, 0, 1}
         };
         do_rotation(rotate_mat);

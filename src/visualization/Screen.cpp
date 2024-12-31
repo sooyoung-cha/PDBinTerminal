@@ -26,19 +26,22 @@ void Screen::set_zoom_level(float zoom){
 }
 
 void Screen::project() {
-    float adjustedFOV = FOV / zoom_level;
-    float fovRad = 1.0 / tan(adjustedFOV * 0.5 / 180.0 * PI);
-    const std::vector<Atom>& atoms = data->get_on_screen_atoms();  
+float adjustedFOV = FOV / zoom_level;
+float fovRad = 1.0 / tan(adjustedFOV * 0.5 / 180.0 * PI);
+const std::vector<Atom>& atoms = data->get_on_screen_atoms();  
 
-    clear_screen();
-    std::cout << "On Screen Atoms: " << atoms.size() << std::endl;
+float focal_offset = 10.0f; // 소실점을 뒤로 이동하기 위한 오프셋 추가
 
-    for (const auto& atom : atoms) {
-        float* position = atom.get_position();
-        float x = position[0];
-        float y = position[1];
-        float z = position[2];
+clear_screen();
+std::cout << "On Screen Atoms: " << atoms.size() << std::endl;
 
+for (const auto& atom : atoms) {
+    float* position = atom.get_position();
+    float x = position[0];
+    float y = position[1];
+    float z = position[2] + focal_offset; // z에 소실점 오프셋 적용
+
+    if (z > 0) { // z 값이 양수일 때만 투영 계산
         float projectedX = (x / z) * fovRad * aspect_ratio;
         float projectedY = (y / z) * fovRad;
         int screenX = (int)((projectedX + 1.0) * 0.5 * screen_width);
@@ -48,7 +51,8 @@ void Screen::project() {
             mScreen[screenY * screen_width + screenX] = '*';
         }
     }
-    std::cout << "Projecting done" << std::endl;
+}
+std::cout << "Projecting done" << std::endl;
 }
 
 void Screen::clear_screen() {
