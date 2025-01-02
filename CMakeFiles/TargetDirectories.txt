@@ -1,0 +1,11 @@
+/Users/yeojingi/Documents/GitHub/PDBinTerminal/CMakeFiles/TerminalPDB.dir
+/Users/yeojingi/Documents/GitHub/PDBinTerminal/CMakeFiles/edit_cache.dir
+/Users/yeojingi/Documents/GitHub/PDBinTerminal/CMakeFiles/rebuild_cache.dir
+/Users/yeojingi/Documents/GitHub/PDBinTerminal/src/CMakeFiles/edit_cache.dir
+/Users/yeojingi/Documents/GitHub/PDBinTerminal/src/CMakeFiles/rebuild_cache.dir
+/Users/yeojingi/Documents/GitHub/PDBinTerminal/src/structure/CMakeFiles/structure.dir
+/Users/yeojingi/Documents/GitHub/PDBinTerminal/src/structure/CMakeFiles/edit_cache.dir
+/Users/yeojingi/Documents/GitHub/PDBinTerminal/src/structure/CMakeFiles/rebuild_cache.dir
+/Users/yeojingi/Documents/GitHub/PDBinTerminal/src/visualization/CMakeFiles/visualization.dir
+/Users/yeojingi/Documents/GitHub/PDBinTerminal/src/visualization/CMakeFiles/edit_cache.dir
+/Users/yeojingi/Documents/GitHub/PDBinTerminal/src/visualization/CMakeFiles/rebuild_cache.dir
