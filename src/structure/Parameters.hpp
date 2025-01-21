@@ -8,7 +8,7 @@ class Parameters{
     // private:
         string in_file = "./test.pdb";
         string format = "pdb";
-        string chains = "A";
+        string chains = "";
         int model = 1;
         int boxsize = 20;
         bool arg_okay = true;

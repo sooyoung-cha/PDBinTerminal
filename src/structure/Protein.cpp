@@ -21,7 +21,7 @@ int Protein::get_length(){
     return init_atoms.size();
 }
 
-void Protein::load_data(const std::string& in_file) {
+void Protein::load_data(const std::string& in_file, const std::string& chains) {
     std::ifstream openFile(in_file);
     if (!openFile.is_open()) {
         std::cerr << "Error opening file: " << in_file << std::endl;
@@ -31,16 +31,18 @@ void Protein::load_data(const std::string& in_file) {
     std::string line;
     while (getline(openFile, line)) {
         if (line.substr(0, 4) == "ATOM" && line.substr(13, 2) == "CA") {
-            float x = std::stof(line.substr(30, 8));
-            float y = std::stof(line.substr(38, 8));
-            float z = std::stof(line.substr(46, 8));
-            Atom new_atom;
-            new_atom.mX = x;
-            new_atom.mY = y;
-            new_atom.mZ = z;
+            if (chains == "" || chains.find(line[21]) == std::string::npos) {
+                float x = std::stof(line.substr(30, 8));
+                float y = std::stof(line.substr(38, 8));
+                float z = std::stof(line.substr(46, 8));
+                Atom new_atom;
+                new_atom.mX = x;
+                new_atom.mY = y;
+                new_atom.mZ = z;
 
-            init_atoms.push_back(new_atom);
-            on_screen_atoms.push_back(new_atom);
+                init_atoms.push_back(new_atom);
+                on_screen_atoms.push_back(new_atom);
+            }
         }
     }
     openFile.close();
