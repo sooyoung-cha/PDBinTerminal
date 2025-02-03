@@ -21,7 +21,7 @@ int Protein::get_length(){
     return init_atoms.size();
 }
 
-void Protein::load_data(const std::string& in_file, const std::string& chains) {
+void Protein::load_ca(const std::string& in_file, const std::string& chains){
     std::ifstream openFile(in_file);
     if (!openFile.is_open()) {
         std::cerr << "Error opening file: " << in_file << std::endl;
@@ -46,6 +46,43 @@ void Protein::load_data(const std::string& in_file, const std::string& chains) {
         }
     }
     openFile.close();
+    return;
+}
+
+void Protein::load_structure(const std::string& in_file, const std::string& chains){
+    std::ifstream openFile(in_file);
+    if (!openFile.is_open()) {
+        std::cerr << "Error opening file: " << in_file << std::endl;
+        return;
+    }
+
+    std::string line;
+    while (getline(openFile, line)) {
+        if (line.substr(0, 4) == "HELIX" || line.substr(0, 4) == "SHEET"){
+            int start = std::stoi(line.substr(21, 4));
+            int end = std::stoi(line.substr(33, 4));
+            char init_chain = line[19];
+            char end_chain = line[31];
+
+            if (line.substr(0, 4) == "HELIX") {
+                for (int i = start; i <= end; i++) {
+                    
+                }
+            }
+            else {
+                for (int i = start; i <= end; i++) {
+                }
+            }
+        }
+    }
+}
+
+void Protein::load_data(const std::string& in_file, const std::string& chains, const bool& show_structure) {
+    load_ca(in_file, chains);
+    if (show_structure) {
+        load_structure(in_file, chains)
+    }
+
     return;
 }
 
