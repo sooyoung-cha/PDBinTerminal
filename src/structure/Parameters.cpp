@@ -28,8 +28,12 @@ Parameters::Parameters(int argc, char* argv[]) {
                 chains = argv[i+1];
                 i++;
             }
-            else if (!strcmp(argv[i],"-s") || !strcmp(argv[i],"--boxsize")) {
+            else if (!strcmp(argv[i],"-b") || !strcmp(argv[i],"--boxsize")) {
                 boxsize = atoi(argv[i+1]);
+                i++;
+            }
+            else if (!strcmp(argv[i],"-s") || !strcmp(argv[i],"--structure")) {
+                show_structure = true;
                 i++;
             }
             else { 

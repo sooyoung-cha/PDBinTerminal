@@ -5,9 +5,11 @@ struct Atom {
     float mX;
     float mY;
     float mZ;
+    char mStructure;        // 'x' : default, 'h' : helix, 's' : sheet
 
-    Atom(float x, float y, float z) : mX(x), mY(y), mZ(z) {}
-    Atom() : mX(0), mY(0), mZ(0) {}
+    Atom(float x, float y, float z) : mX(x), mY(y), mZ(z), mStructure{'x'} {}
+    Atom(float x, float y, float z, char c) : mX(x), mY(y), mZ(z), mStructure{c} {}
+    Atom() : mX(0), mY(0), mZ(0), mStructure{'x'} {}
 
     float* get_position() const {
         static float coords[3]; 
@@ -15,6 +17,10 @@ struct Atom {
         coords[1] = mY;
         coords[2] = mZ;
         return coords;
+    }
+
+    char get_structure() const {
+        return mStructure;
     }
 
     void set_position(float x, float y, float z) {

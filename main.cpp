@@ -11,7 +11,7 @@ int main(int argc, char* argv[]) {
         return -1; 
     }
 
-    Protein protein(params.get_in_file(), params.get_chains());
+    Protein protein(params.get_in_file(), params.get_chains(), params.get_show_structure());
 
     Screen screen(80, 40); 
     screen.set_protein(&protein);
