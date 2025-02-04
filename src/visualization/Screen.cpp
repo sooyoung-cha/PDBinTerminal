@@ -6,9 +6,10 @@
 const float FOV = 90.0;
 const float PI = 3.14159265359;
 
-Screen::Screen(int width, int height) {
+Screen::Screen(const int& width, const int& height, const bool& show_structure) {
     screen_width = width;
     screen_height = height;
+    screen_show_structure = show_structure;
     aspect_ratio = (float)screen_width / screen_height;
     mScreen = new char[screen_height * screen_width];
     zoom_level = 1;
@@ -28,27 +29,34 @@ void Screen::set_zoom_level(float zoom){
 void Screen::project() {
     float adjustedFOV = FOV / zoom_level;
     float fovRad = 1.0 / tan(adjustedFOV * 0.5 / 180.0 * PI);
-    const std::vector<Atom>& atoms = data->get_on_screen_atoms();  
+    std::unordered_map<char, std::unordered_map<int, Atom>> atoms = data->get_on_screen_atoms();  
 
     float focal_offset = 10.0f; // 소실점을 뒤로 이동하기 위한 오프셋 추가
 
     clear_screen();
     std::cout << "On Screen Atoms: " << atoms.size() << std::endl;
 
-    for (const auto& atom : atoms) {
-        float* position = atom.get_position();
-        float x = position[0];
-        float y = position[1];
-        float z = position[2] + focal_offset; // z에 소실점 오프셋 적용
+    for (const auto& [chainID, chain_atoms] : atoms) {  // 체인별 순회
+        for (const auto& [idx, atom] : chain_atoms) {  // 잔기별 순회
+            float* position = atom.get_position();  // 원자 좌표 가져오기
+            float x = position[0];
+            float y = position[1];
+            float z = position[2] + focal_offset; // z에 소실점 오프셋 적용
 
-        if (z > 0) { // z 값이 양수일 때만 투영 계산
-            float projectedX = (x / z) * fovRad * aspect_ratio;
-            float projectedY = (y / z) * fovRad;
-            int screenX = (int)((projectedX + 1.0) * 0.5 * screen_width);
-            int screenY = (int)((1.0 - projectedY) * 0.5 * screen_height);
+            char point = '*';
+            if (screen_show_structure) {
+                point = atom.get_structure();
+            }
 
-            if (screenX >= 0 && screenX < screen_width && screenY >= 0 && screenY < screen_height) {
-                mScreen[screenY * screen_width + screenX] = '*';
+            if (z > 0) { // z 값이 양수일 때만 투영 계산
+                float projectedX = (x / z) * fovRad * aspect_ratio;
+                float projectedY = (y / z) * fovRad;
+                int screenX = (int)((projectedX + 1.0) * 0.5 * screen_width);
+                int screenY = (int)((1.0 - projectedY) * 0.5 * screen_height);
+
+                if (screenX >= 0 && screenX < screen_width && screenY >= 0 && screenY < screen_height) {
+                    mScreen[screenY * screen_width + screenX] = point;
+                }
             }
         }
     }

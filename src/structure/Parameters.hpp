@@ -11,6 +11,7 @@ class Parameters{
         string chains = "";
         int model = 1;
         int boxsize = 20;
+        bool show_structure = false;
         bool arg_okay = true;
 
     public:
@@ -33,6 +34,9 @@ class Parameters{
         }
         int get_boxsize(){
             return boxsize;
+        }
+        bool get_show_structure(){
+            return show_structure;
         }
         bool check_arg_okay(){
             return arg_okay;

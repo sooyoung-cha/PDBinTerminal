@@ -13,7 +13,7 @@ int main(int argc, char* argv[]) {
 
     Protein protein(params.get_in_file(), params.get_chains(), params.get_show_structure());
 
-    Screen screen(80, 40); 
+    Screen screen(80, 40, params.get_show_structure()); 
     screen.set_protein(&protein);
 
     initscr(); // ncurses 초기화

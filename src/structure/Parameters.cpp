@@ -55,5 +55,6 @@ void Parameters::print_args() {
     cout << "  model: " << model << endl;
     cout << "  chains: " << chains << endl;
     cout << "  boxsize: " << boxsize << endl;
+    cout << "  show_structure: " << show_structure << endl;
     return;
 }

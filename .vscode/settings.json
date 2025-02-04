@@ -68,6 +68,13 @@
     "algorithm": "cpp",
     "functional": "cpp",
     "iterator": "cpp",
-    "utility": "cpp"
+    "utility": "cpp",
+    "*.tcc": "cpp",
+    "cfenv": "cpp",
+    "memory_resource": "cpp",
+    "numeric": "cpp",
+    "random": "cpp",
+    "numbers": "cpp",
+    "cinttypes": "cpp"
   }
 }

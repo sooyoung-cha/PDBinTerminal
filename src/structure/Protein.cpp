@@ -4,16 +4,16 @@
 #include <iostream>
 #include <cmath>
 
-Protein::Protein(const std::string& in_file) {
-    load_data(in_file); 
+Protein::Protein(const std::string& in_file, const std::string& chains, const bool& show_structure) {
+    load_data(in_file, chains, show_structure); 
     return;
 }
 
-std::vector<Atom>& Protein::get_init_atoms() {
+std::unordered_map<char, std::unordered_map<int, Atom>>& Protein::get_init_atoms() {
     return init_atoms;  
 }
 
-std::vector<Atom>& Protein::get_on_screen_atoms() {
+std::unordered_map<char, std::unordered_map<int, Atom>>& Protein::get_on_screen_atoms() {
     return on_screen_atoms; 
 }
 
@@ -31,17 +31,17 @@ void Protein::load_ca(const std::string& in_file, const std::string& chains){
     std::string line;
     while (getline(openFile, line)) {
         if (line.substr(0, 4) == "ATOM" && line.substr(13, 2) == "CA") {
-            if (chains == "" || chains.find(line[21]) == std::string::npos) {
+            char chainID = line[21];
+            if (chains == "" || chains.find(chainID) == std::string::npos) {
+                int idx = std::stoi(line.substr(24, 4));
                 float x = std::stof(line.substr(30, 8));
                 float y = std::stof(line.substr(38, 8));
                 float z = std::stof(line.substr(46, 8));
                 Atom new_atom;
-                new_atom.mX = x;
-                new_atom.mY = y;
-                new_atom.mZ = z;
+                new_atom.set_position(x, y, z);
 
-                init_atoms.push_back(new_atom);
-                on_screen_atoms.push_back(new_atom);
+                init_atoms[chainID][idx] = new_atom;
+                on_screen_atoms[chainID][idx] = new_atom;
             }
         }
     }
@@ -49,7 +49,7 @@ void Protein::load_ca(const std::string& in_file, const std::string& chains){
     return;
 }
 
-void Protein::load_structure(const std::string& in_file, const std::string& chains){
+void Protein::load_structure(const std::string& in_file, const std::string& chains) {
     std::ifstream openFile(in_file);
     if (!openFile.is_open()) {
         std::cerr << "Error opening file: " << in_file << std::endl;
@@ -58,29 +58,61 @@ void Protein::load_structure(const std::string& in_file, const std::string& chai
 
     std::string line;
     while (getline(openFile, line)) {
-        if (line.substr(0, 4) == "HELIX" || line.substr(0, 4) == "SHEET"){
-            int start = std::stoi(line.substr(21, 4));
-            int end = std::stoi(line.substr(33, 4));
-            char init_chain = line[19];
-            char end_chain = line[31];
+        line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
 
-            if (line.substr(0, 4) == "HELIX") {
-                for (int i = start; i <= end; i++) {
-                    
+        if (line.substr(0, 5) == "HELIX" || line.substr(0, 5) == "SHEET") {
+            char start_chainID, end_chainID;
+            int start, end;
+
+            if (line.substr(0, 5) == "SHEET") { // SHEET
+                start_chainID = line[21];
+                start = std::stoi(line.substr(22, 4));
+                end_chainID = line[32];
+                end = std::stoi(line.substr(33, 4));
+                
+                if (start_chainID == end_chainID) {
+                    auto& initChain = init_atoms[start_chainID];
+                    auto& screenChain = on_screen_atoms[start_chainID];
+
+                    for (int i = start; i <= end; i++) {
+                        if (initChain.find(i) != initChain.end()) {
+                            initChain[i].set_structure('b');
+                        }
+                        if (screenChain.find(i) != screenChain.end()) {
+                            screenChain[i].set_structure('b');
+                        }
+                    }
                 }
             }
-            else {
-                for (int i = start; i <= end; i++) {
+            else if (line.substr(0, 5) == "HELIX") {
+                start_chainID = line[19];
+                start = std::stoi(line.substr(21, 4));
+                end_chainID = line[31];
+                end = std::stoi(line.substr(33, 4));
+
+                if (start_chainID == end_chainID) {
+                    auto& initChain = init_atoms[start_chainID];
+                    auto& screenChain = on_screen_atoms[start_chainID];
+
+                    for (int i = start; i <= end; i++) {
+                        if (initChain.find(i) != initChain.end()) {
+                            initChain[i].set_structure('a');
+                        }
+                        if (screenChain.find(i) != screenChain.end()) {
+                            screenChain[i].set_structure('a');
+                        }
+                    }
                 }
-            }
+            } 
         }
     }
 }
 
+
 void Protein::load_data(const std::string& in_file, const std::string& chains, const bool& show_structure) {
     load_ca(in_file, chains);
     if (show_structure) {
-        load_structure(in_file, chains)
+        load_structure(in_file, chains);
     }
 
     return;
@@ -147,13 +179,16 @@ void Protein::do_rotation(float rotate_mat[3][3]) {
     //     simdf32_store(&on_screen_atoms[i].mZ, zz);
     // }
 
-    for (int i = 0; i < len; ++i) {
-        float x = on_screen_atoms[i].mX;
-        float y = on_screen_atoms[i].mY;
-        float z = on_screen_atoms[i].mZ;
-        on_screen_atoms[i].mX = rotate_mat[0][0] * x + rotate_mat[0][1] * y + rotate_mat[0][2] * z;
-        on_screen_atoms[i].mY = rotate_mat[1][0] * x + rotate_mat[1][1] * y + rotate_mat[1][2] * z;
-        on_screen_atoms[i].mZ = rotate_mat[2][0] * x + rotate_mat[2][1] * y + rotate_mat[2][2] * z;
+    for (auto& [chainID, chain_atoms] : on_screen_atoms) {  
+        for (auto& [idx, atom] : chain_atoms) { 
+            float x = atom.mX;
+            float y = atom.mY;
+            float z = atom.mZ;
+
+            atom.mX = rotate_mat[0][0] * x + rotate_mat[0][1] * y + rotate_mat[0][2] * z;
+            atom.mY = rotate_mat[1][0] * x + rotate_mat[1][1] * y + rotate_mat[1][2] * z;
+            atom.mZ = rotate_mat[2][0] * x + rotate_mat[2][1] * y + rotate_mat[2][2] * z;
+        }
     }
 
     return;
@@ -169,11 +204,12 @@ void Protein::set_shift(int shift_x, int shift_y, int shift_z) {
 }
 
 void Protein::do_shift(float shift_mat[3]) {
-    int len = get_length();
-    for (int i = 0; i < len; ++i) { 
-        on_screen_atoms[i].mX += shift_mat[0];
-        on_screen_atoms[i].mY += shift_mat[1];
-        on_screen_atoms[i].mZ += shift_mat[2];
+    for (auto& [chainID, chain_atoms] : on_screen_atoms) { 
+        for (auto& [idx, atom] : chain_atoms) {
+            atom.mX += shift_mat[0];
+            atom.mY += shift_mat[1];
+            atom.mZ += shift_mat[2];
+        }
     }
     // int len = on_screen_atoms.size();
     // simd_float t0 = simdf32_set(shift_mat[0]);
