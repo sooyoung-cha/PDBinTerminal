@@ -149,7 +149,6 @@ void Protein::load_data(const std::string& in_file, const std::string& target_ch
 void Protein::set_rotate(int x_rotate, int y_rotate, int z_rotate){
     const float PI = 3.14159265359;
     const float UNIT = 12;
-    std::cout << "Rotate: " << x_rotate << " " << y_rotate << " " << z_rotate << std::endl;
 
     if (x_rotate != 0) {
         float rotate_mat[3][3] = {
@@ -176,15 +175,12 @@ void Protein::set_rotate(int x_rotate, int y_rotate, int z_rotate){
         do_rotation(rotate_mat);
     }
 
-    std::cout << "Rotate done" << std::endl;
 }
 
 
 void Protein::set_shift(int shift_x, int shift_y, int shift_z) { 
-    std::cout << "Shift: " << shift_x << " " << shift_y << " " << shift_z << std::endl;
     float shift_mat[3] = {shift_x, shift_y, shift_z};
     do_shift(shift_mat);
-    std::cout << "Shift done" << std::endl;
 }
 
 void Protein::do_rotation(float rotate_mat[3][3]) {

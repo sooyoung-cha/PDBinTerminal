@@ -1,49 +1,70 @@
 #include "Parameters.hpp"
 
 Parameters::Parameters(int argc, char* argv[]) {
-    // get in_file
+    arg_okay = true;
+    chains = "";  // ⬅ 기본값 설정 (문제 1 해결)
+
     if (argc > 1) {
         in_file = argv[1];
-    }
-    else {
-        cout << "Need input file dir !!!" << endl;
+    } else {
+        std::cerr << "Need input file dir !!!" << std::endl;
         arg_okay = false;
+        return;
     }
 
-    // get format, chains, model, boxsize
     for (int i = 2; i < argc; i++) {
-        try{
-            if (!strcmp(argv[i],"-f") || !strcmp(argv[i],"--format")) {
-                if (!strcmp(argv[i+1], "pdb") || !strcmp(argv[i+1], "mmcif") || !strcmp(argv[i+1], "mmtf") || !strcmp(argv[i+1], "mae") || !strcmp(argv[i+1], "maegz")){
+        try {
+            if (!strcmp(argv[i], "-f") || !strcmp(argv[i], "--format")) {
+                if (i + 1 < argc && (!strcmp(argv[i+1], "pdb") || !strcmp(argv[i+1], "mmcif") ||
+                                     !strcmp(argv[i+1], "mmtf") || !strcmp(argv[i+1], "mae") || 
+                                     !strcmp(argv[i+1], "maegz"))) {
                     format = argv[i+1];
                     i++;
+                } else {
+                    throw std::runtime_error("Invalid format type.");
                 }
-                else {throw;}
             }
-            else if (!strcmp(argv[i],"-m") || !strcmp(argv[i],"--model")) {
-                model = atoi(argv[i+1]);
-                i++;
+            else if (!strcmp(argv[i], "-m") || !strcmp(argv[i], "--model")) {
+                if (i + 1 < argc && isdigit(argv[i+1][0])) {  // ⬅ atoi() 실행 전 확인 (문제 2 해결)
+                    model = atoi(argv[i+1]);
+                    i++;
+                } else {
+                    throw std::runtime_error("Invalid or missing argument for -m / --model.");
+                }
             }
-            else if (!strcmp(argv[i],"-c") || !strcmp(argv[i],"--chains")) {
-                chains = argv[i+1];
-                i++;
+            else if (!strcmp(argv[i], "-c") || !strcmp(argv[i], "--chains")) {
+                if (i + 1 < argc) {  
+                    if (argv[i+1] == nullptr || strlen(argv[i+1]) == 0) {  // ✅ 비어 있는 값 체크
+                        throw std::runtime_error("Error: Chains argument is empty!");
+                    }
+                    chains = argv[i+1];  
+                    i++;
+
+                    std::cout << "DEBUG: Parsed chains = '" << chains << "'" << std::endl; // ✅ 디버깅 출력 추가
+                } else {
+                    throw std::runtime_error("Missing argument for -c / --chains.");
+                }
             }
-            else if (!strcmp(argv[i],"-b") || !strcmp(argv[i],"--boxsize")) {
-                boxsize = atoi(argv[i+1]);
-                i++;
+            else if (!strcmp(argv[i], "-b") || !strcmp(argv[i], "--boxsize")) {
+                if (i + 1 < argc && isdigit(argv[i+1][0])) {
+                    boxsize = atoi(argv[i+1]);
+                    i++;
+                } else {
+                    throw std::runtime_error("Invalid or missing argument for -b / --boxsize.");
+                }
             }
-            else if (!strcmp(argv[i],"-s") || !strcmp(argv[i],"--structure")) {
+            else if (!strcmp(argv[i], "-s") || !strcmp(argv[i], "--structure")) {
                 show_structure = true;
-                i++;
             }
-            else { 
-                throw;
+            else {
+                throw std::runtime_error("Unknown parameter: " + std::string(argv[i])); // ⬅ throw 수정 (문제 3 해결)
             }
         }
-        catch(...) {
-            cout << "Wrong input parameters !!!" << endl;
-            cout << argv[i] << endl;
+        catch (const std::exception& e) {
+            std::cerr << "Wrong input parameters: " << e.what() << std::endl;
+            std::cerr << "Error at argument: " << argv[i] << std::endl;
             arg_okay = false;
+            return;
         }
     }
 }

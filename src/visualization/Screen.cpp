@@ -14,6 +14,7 @@ Screen::Screen(const int& width, const int& height, const bool& show_structure) 
     mScreen = new char[screen_height * screen_width];
     zoom_level = 1;
     clear_screen();
+
 }
 
 Screen::~Screen() {
@@ -21,7 +22,8 @@ Screen::~Screen() {
 }
 
 void Screen::set_protein(Protein* protein) {
-  data = protein;
+    data = protein;
+    initialize_colors();
 }
 
 void Screen::set_zoom_level(float zoom){
@@ -30,54 +32,120 @@ void Screen::set_zoom_level(float zoom){
     }
 }
 
+
+void Screen::initialize_colors() {
+    initscr();
+    if (!has_colors() || !can_change_color()) {
+        endwin();
+        std::cerr << "Terminal does not support colors!" << std::endl;
+        return;
+    }
+
+    start_color();
+    use_default_colors();
+
+    int available_colors[] = {COLOR_GREEN, COLOR_YELLOW, COLOR_BLUE, COLOR_MAGENTA, COLOR_CYAN, COLOR_WHITE};
+
+    int color_index = 1;
+    for (const auto& [chainID, _] : data->get_on_screen_atoms()) { 
+        if (chain_colors.find(chainID) == chain_colors.end()) {  
+            int assigned_color = available_colors[(color_index - 1) % 6];  
+            init_pair(color_index, assigned_color, COLOR_BLACK);
+            chain_colors[chainID] = color_index;
+            color_index++;
+        }
+    }
+}
+
+
+
 void Screen::project() {
     float adjustedFOV = FOV / zoom_level;
     float fovRad = 1.0 / tan(adjustedFOV * 0.5 / 180.0 * PI);
-    std::map<char, Atom*> on_screen_atoms = data->get_on_screen_atoms();  
+    float focal_offset = 10.0f; // 소실점 오프셋
 
-    float focal_offset = 10.0f; // 소실점을 뒤로 이동하기 위한 오프셋 추가
+    clear_screen();  // 기존 `mScreen` 초기화
+    screen_buffer_by_chain.clear();  // ✅ 이전 데이터를 초기화
 
-    clear_screen();
-    std::cout << "On Screen Atoms: " << on_screen_atoms.size() << std::endl;
+    std::unordered_map<char, std::vector<char>> chain_screen; // ✅ 체인별 mScreen 저장소
 
-    for (const auto& [chainID, chain_atoms] : on_screen_atoms) {  // 체인별 순회
-        if (!chain_atoms) continue;  // nullptr 체크
+    for (const auto& [chainID, chain_atoms] : data->get_on_screen_atoms()) {  
+        if (!chain_atoms) continue; // ✅ nullptr 체크
 
-        int num_atoms = data->get_num_chain_Atoms(chainID); // 해당 체인의 Atom 개수 가져오기
-        for (int i = 0; i < num_atoms; ++i) {  // 해당 체인의 원자 순회
+        int num_atoms = data->get_num_chain_Atoms(chainID); // 해당 체인의 원자 개수
+
+        // ✅ 체인별 화면 버퍼 초기화
+        if (chain_screen.find(chainID) == chain_screen.end()) {
+            chain_screen[chainID] = std::vector<char>(screen_width * screen_height, ' ');
+        }
+
+        for (int i = 0; i < num_atoms; ++i) {  
             float* position = chain_atoms[i].get_position();
             float x = position[0];
             float y = position[1];
-            float z = position[2] + focal_offset; // z에 소실점 오프셋 적용
+            float z = position[2] + focal_offset; // ✅ z에 소실점 오프셋 적용
 
             char point = '*';
             if (screen_show_structure) {
                 point = chain_atoms[i].get_structure();
             }
 
-            if (z > 0) { // z 값이 양수일 때만 투영 계산
+            if (z > 0) {  
                 float projectedX = (x / z) * fovRad * aspect_ratio;
                 float projectedY = (y / z) * fovRad;
                 int screenX = (int)((projectedX + 1.0) * 0.5 * screen_width);
                 int screenY = (int)((1.0 - projectedY) * 0.5 * screen_height);
 
                 if (screenX >= 0 && screenX < screen_width && screenY >= 0 && screenY < screen_height) {
-                    mScreen[screenY * screen_width + screenX] = point;
+                    chain_screen[chainID][screenY * screen_width + screenX] = point;
                 }
             }
         }
     }
-    std::cout << "Projecting done" << std::endl;
+
+    // ✅ 저장된 체인별 화면을 `mScreen`에 반영 (우선순위 적용 가능)
+    for (const auto& [chainID, buffer] : chain_screen) {
+        for (int i = 0; i < screen_width * screen_height; ++i) {
+            if (buffer[i] != ' ') {  
+                mScreen[i] = buffer[i];
+            }
+        }
+    }
+
+    // ✅ 체인별 색상 출력을 위해 저장
+    screen_buffer_by_chain = chain_screen;
+
 }
+
+
 void Screen::clear_screen() {
     clear(); 
     std::fill(mScreen, mScreen + screen_height * screen_width, '_');
 }
 
 void Screen::print_screen() {
+
     for (int i = 0; i < screen_height; i++) {
         for (int j = 0; j < screen_width; j++) {
-            mvaddch(i, j, mScreen[i * screen_width + j]); 
+            char point = mScreen[i * screen_width + j];
+
+            // ✅ 현재 좌표에 있는 체인을 찾음
+            char chainID = ' ';
+            for (const auto& [cID, buffer] : screen_buffer_by_chain) {
+                if (buffer[i * screen_width + j] == point) {
+                    chainID = cID;
+                    break;
+                }
+            }
+
+            if (chain_colors.find(chainID) != chain_colors.end()) {
+                int color_id = chain_colors[chainID];  
+                attron(COLOR_PAIR(color_id));
+                mvaddch(i, j, point);
+                attroff(COLOR_PAIR(color_id));
+            } else {
+                mvaddch(i, j, point);
+            }
         }
     }
     refresh();

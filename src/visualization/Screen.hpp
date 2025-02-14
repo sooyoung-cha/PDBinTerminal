@@ -13,6 +13,7 @@ public:
     void set_zoom_level(float zoom);
     bool handle_input();
     void drawScreen();
+    void initialize_colors();
 
 private:
     int screen_width;
@@ -21,7 +22,10 @@ private:
     float aspect_ratio;
     float zoom_level;
     char* mScreen;
+    std::unordered_map<char, std::vector<char>> screen_buffer_by_chain;  // ✅ 체인별 화면 버퍼
     Protein* data;
+
+    std::map<char, int> chain_colors;
 
     void project();
     void clear_screen();
