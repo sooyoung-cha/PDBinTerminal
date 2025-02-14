@@ -8,6 +8,7 @@
 class Screen {
 public:
     Screen(const int& width, const int& height, const bool& show_structure);
+    ~Screen();
     void set_protein(Protein* protein);
     void set_zoom_level(float zoom);
     bool handle_input();

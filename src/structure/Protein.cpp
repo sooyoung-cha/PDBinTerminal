@@ -4,24 +4,49 @@
 #include <iostream>
 #include <cmath>
 
-Protein::Protein(const std::string& in_file, const std::string& chains, const bool& show_structure) {
-    load_data(in_file, chains, show_structure); 
+Protein::Protein(const std::string& in_file, const std::string& target_chains, const bool& show_structure) {
+    load_data(in_file, target_chains, show_structure); 
     return;
 }
 
-std::unordered_map<char, std::unordered_map<int, Atom>>& Protein::get_init_atoms() {
+Protein::~Protein() {
+    for (auto& [chainID, chain_atoms] : init_atoms) {
+        delete[] chain_atoms;
+    }
+    for (auto& [chainID, chain_atoms] : on_screen_atoms) {
+        delete[] chain_atoms;
+    }
+}
+
+
+std::map<char, Atom*>& Protein::get_init_atoms() {
     return init_atoms;  
 }
 
-std::unordered_map<char, std::unordered_map<int, Atom>>& Protein::get_on_screen_atoms() {
+std::map<char, Atom*>& Protein::get_on_screen_atoms() {
     return on_screen_atoms; 
 }
 
-int Protein::get_length(){
-    return init_atoms.size();
+std::map<char, int>& Protein::get_num_chain_Atoms() {
+    return num_chain_Atoms; 
 }
 
-void Protein::load_ca(const std::string& in_file, const std::string& chains){
+int& Protein::get_num_chain_Atoms(char chainID) {
+    return num_chain_Atoms[chainID]; 
+}
+
+int Protein::get_length() {
+    int total_atoms = 0;
+    for (const auto& [chainID, count] : num_chain_Atoms) {
+        total_atoms += count;
+    }
+    return total_atoms;
+}
+
+
+void Protein::get_cnt_atom_ss(const std::string& in_file, const std::string& target_chains, 
+                              std::vector<std::tuple<char, int, char, int, char>>& sec_struct_info,
+                              bool show_structure) {
     std::ifstream openFile(in_file);
     if (!openFile.is_open()) {
         std::cerr << "Error opening file: " << in_file << std::endl;
@@ -32,24 +57,44 @@ void Protein::load_ca(const std::string& in_file, const std::string& chains){
     while (getline(openFile, line)) {
         if (line.substr(0, 4) == "ATOM" && line.substr(13, 2) == "CA") {
             char chainID = line[21];
-            if (chains == "" || chains.find(chainID) == std::string::npos) {
-                int idx = std::stoi(line.substr(24, 4));
-                float x = std::stof(line.substr(30, 8));
-                float y = std::stof(line.substr(38, 8));
-                float z = std::stof(line.substr(46, 8));
-                Atom new_atom;
-                new_atom.set_position(x, y, z);
-
-                init_atoms[chainID][idx] = new_atom;
-                on_screen_atoms[chainID][idx] = new_atom;
+            if (target_chains.empty() || target_chains.find(chainID) != std::string::npos) {
+                num_chain_Atoms[chainID]++;
             }
+        }
+        else if (show_structure && (line.substr(0, 5) == "HELIX" || line.substr(0, 5) == "SHEET")) {
+            char start_chainID, end_chainID, struct_type;
+            int start, end;
+
+            if (line.substr(0, 5) == "SHEET") { // SHEET (β-strand)
+                start_chainID = line[21];
+                start = std::stoi(line.substr(22, 4));
+                end_chainID = line[32];
+                end = std::stoi(line.substr(33, 4));
+                struct_type = 'S'; // SHEET → 'S'
+            }
+            else if (line.substr(0, 5) == "HELIX") { // HELIX (α-helix)
+                start_chainID = line[19];
+                start = std::stoi(line.substr(21, 4));
+                end_chainID = line[31];
+                end = std::stoi(line.substr(33, 4));
+                struct_type = 'H'; // HELIX → 'H'
+            }
+
+            sec_struct_info.emplace_back(start_chainID, start, end_chainID, end, struct_type);
         }
     }
     openFile.close();
-    return;
 }
 
-void Protein::load_structure(const std::string& in_file, const std::string& chains) {
+void Protein::load_ca(const std::string& in_file, const std::string& target_chains,
+                      std::vector<std::tuple<char, int, char, int, char>> sec_struct_info,
+                      bool show_structure) {
+    for (const auto& [chain, num_atoms] : num_chain_Atoms) {
+        init_atoms[chain] = new Atom[num_atoms];
+        on_screen_atoms[chain] = new Atom[num_atoms];
+    }
+
+    std::map<char, int> atom_counter; // 각 체인의 현재 저장 위치
     std::ifstream openFile(in_file);
     if (!openFile.is_open()) {
         std::cerr << "Error opening file: " << in_file << std::endl;
@@ -58,64 +103,47 @@ void Protein::load_structure(const std::string& in_file, const std::string& chai
 
     std::string line;
     while (getline(openFile, line)) {
-        line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
+        if (line.substr(0, 4) == "ATOM" && line.substr(13, 2) == "CA") {
+            char chainID = line[21];
+            if (target_chains.empty() || target_chains.find(chainID) != std::string::npos) {
+                int idx = atom_counter[chainID]++; // 0부터 연속적인 index로 저장
+                int pdb_idx = std::stoi(line.substr(24, 4)); 
+                float x = std::stof(line.substr(30, 8));
+                float y = std::stof(line.substr(38, 8));
+                float z = std::stof(line.substr(46, 8));
 
-        if (line.substr(0, 5) == "HELIX" || line.substr(0, 5) == "SHEET") {
-            char start_chainID, end_chainID;
-            int start, end;
-
-            if (line.substr(0, 5) == "SHEET") { // SHEET
-                start_chainID = line[21];
-                start = std::stoi(line.substr(22, 4));
-                end_chainID = line[32];
-                end = std::stoi(line.substr(33, 4));
-                
-                if (start_chainID == end_chainID) {
-                    auto& initChain = init_atoms[start_chainID];
-                    auto& screenChain = on_screen_atoms[start_chainID];
-
-                    for (int i = start; i <= end; i++) {
-                        if (initChain.find(i) != initChain.end()) {
-                            initChain[i].set_structure('b');
-                        }
-                        if (screenChain.find(i) != screenChain.end()) {
-                            screenChain[i].set_structure('b');
+                if (init_atoms.count(chainID) && idx < num_chain_Atoms[chainID]) {
+                    init_atoms[chainID][idx].set_position(x, y, z);
+                    on_screen_atoms[chainID][idx].set_position(x, y, z);
+                    
+                    if (show_structure){
+                        for (const auto& [start_chainID, start, end_chainID, end, struct_type] : sec_struct_info) {
+                            if (chainID == start_chainID && pdb_idx >= start && pdb_idx <= end) {
+                                init_atoms[chainID][idx].set_structure(struct_type);
+                                on_screen_atoms[chainID][idx].set_structure(struct_type);
+                            }
                         }
                     }
                 }
             }
-            else if (line.substr(0, 5) == "HELIX") {
-                start_chainID = line[19];
-                start = std::stoi(line.substr(21, 4));
-                end_chainID = line[31];
-                end = std::stoi(line.substr(33, 4));
-
-                if (start_chainID == end_chainID) {
-                    auto& initChain = init_atoms[start_chainID];
-                    auto& screenChain = on_screen_atoms[start_chainID];
-
-                    for (int i = start; i <= end; i++) {
-                        if (initChain.find(i) != initChain.end()) {
-                            initChain[i].set_structure('a');
-                        }
-                        if (screenChain.find(i) != screenChain.end()) {
-                            screenChain[i].set_structure('a');
-                        }
-                    }
-                }
-            } 
         }
     }
+
+    openFile.close();
 }
 
 
-void Protein::load_data(const std::string& in_file, const std::string& chains, const bool& show_structure) {
-    load_ca(in_file, chains);
-    if (show_structure) {
-        load_structure(in_file, chains);
+void Protein::load_data(const std::string& in_file, const std::string& target_chains, const bool& show_structure) {
+    
+    std::vector<std::tuple<char, int, char, int, char>> sec_struct_info; 
+    get_cnt_atom_ss(in_file, target_chains, sec_struct_info, show_structure);
+
+    if (num_chain_Atoms.empty()) {
+        std::cerr << "Error: num_chain_Atoms is empty. Possible issue in get_cnt_atom_ss()." << std::endl;
+        return;
     }
 
-    return;
+    load_ca(in_file, target_chains, sec_struct_info, show_structure);
 }
 
 void Protein::set_rotate(int x_rotate, int y_rotate, int z_rotate){
@@ -149,84 +177,46 @@ void Protein::set_rotate(int x_rotate, int y_rotate, int z_rotate){
     }
 
     std::cout << "Rotate done" << std::endl;
-
-    return;
 }
 
-void Protein::do_rotation(float rotate_mat[3][3]) {
-    int len = get_length();
-    // simd_float u00 = simdf32_set(rotate_mat[0][0]);
-    // simd_float u01 = simdf32_set(rotate_mat[0][1]);
-    // simd_float u02 = simdf32_set(rotate_mat[0][2]);
-    // simd_float u10 = simdf32_set(rotate_mat[1][0]);
-    // simd_float u11 = simdf32_set(rotate_mat[1][1]);
-    // simd_float u12 = simdf32_set(rotate_mat[1][2]);
-    // simd_float u20 = simdf32_set(rotate_mat[2][0]);
-    // simd_float u21 = simdf32_set(rotate_mat[2][1]);
-    // simd_float u22 = simdf32_set(rotate_mat[2][2]);
-
-    // for (int i = 0; i < len / VECSIZE_FLOAT * VECSIZE_FLOAT; i += VECSIZE_FLOAT) {
-    //     simd_float x_x = simdf32_load(&on_screen_atoms[i].mX);
-    //     simd_float x_y = simdf32_load(&on_screen_atoms[i].mY);
-    //     simd_float x_z = simdf32_load(&on_screen_atoms[i].mZ);
-
-    //     simd_float xx = simdf32_add(simdf32_mul(u00, x_x), simdf32_add(simdf32_mul(u01, x_y), simdf32_mul(u02, x_z)));
-    //     simd_float yy = simdf32_add(simdf32_mul(u10, x_x), simdf32_add(simdf32_mul(u11, x_y), simdf32_mul(u12, x_z)));
-    //     simd_float zz = simdf32_add(simdf32_mul(u20, x_x), simdf32_add(simdf32_mul(u21, x_y), simdf32_mul(u22, x_z)));
-
-    //     simdf32_store(&on_screen_atoms[i].mX, xx);
-    //     simdf32_store(&on_screen_atoms[i].mY, yy);
-    //     simdf32_store(&on_screen_atoms[i].mZ, zz);
-    // }
-
-    for (auto& [chainID, chain_atoms] : on_screen_atoms) {  
-        for (auto& [idx, atom] : chain_atoms) { 
-            float x = atom.mX;
-            float y = atom.mY;
-            float z = atom.mZ;
-
-            atom.mX = rotate_mat[0][0] * x + rotate_mat[0][1] * y + rotate_mat[0][2] * z;
-            atom.mY = rotate_mat[1][0] * x + rotate_mat[1][1] * y + rotate_mat[1][2] * z;
-            atom.mZ = rotate_mat[2][0] * x + rotate_mat[2][1] * y + rotate_mat[2][2] * z;
-        }
-    }
-
-    return;
-}
 
 void Protein::set_shift(int shift_x, int shift_y, int shift_z) { 
     std::cout << "Shift: " << shift_x << " " << shift_y << " " << shift_z << std::endl;
     float shift_mat[3] = {shift_x, shift_y, shift_z};
     do_shift(shift_mat);
     std::cout << "Shift done" << std::endl;
-
-    return;
 }
 
-void Protein::do_shift(float shift_mat[3]) {
-    for (auto& [chainID, chain_atoms] : on_screen_atoms) { 
-        for (auto& [idx, atom] : chain_atoms) {
-            atom.mX += shift_mat[0];
-            atom.mY += shift_mat[1];
-            atom.mZ += shift_mat[2];
+void Protein::do_rotation(float rotate_mat[3][3]) {
+    for (auto& [chainID, chain_atoms] : on_screen_atoms) {  
+        if (!chain_atoms) continue;  // nullptr 체크
+
+        int num_atoms = num_chain_Atoms[chainID]; // 해당 체인의 원자 개수
+        for (int i = 0; i < num_atoms; ++i) { 
+            float x = chain_atoms[i].mX;
+            float y = chain_atoms[i].mY;
+            float z = chain_atoms[i].mZ;
+
+            chain_atoms[i].mX = rotate_mat[0][0] * x + rotate_mat[0][1] * y + rotate_mat[0][2] * z;
+            chain_atoms[i].mY = rotate_mat[1][0] * x + rotate_mat[1][1] * y + rotate_mat[1][2] * z;
+            chain_atoms[i].mZ = rotate_mat[2][0] * x + rotate_mat[2][1] * y + rotate_mat[2][2] * z;
         }
     }
-    // int len = on_screen_atoms.size();
-    // simd_float t0 = simdf32_set(shift_mat[0]);
-    // simd_float t1 = simdf32_set(shift_mat[1]);
-    // simd_float t2 = simdf32_set(shift_mat[2]);
-
-    // int simd_end = len - (len % VECSIZE_FLOAT);
-    // for (int i = 0; i < len; i += VECSIZE_FLOAT){
-    //     simd_float x_x = simdf32_load(&(on_screen_atoms[i].mX));
-    //     simd_float x_y = simdf32_load(&(on_screen_atoms[i].mY));
-    //     simd_float x_z = simdf32_load(&(on_screen_atoms[i].mZ));
-    //     x_x = simdf32_add(x_x, t0);
-    //     x_y = simdf32_add(x_y, t1);
-        
-    //     // simdf32_store(&(on_screen_atoms[i].mX), simdf32_add(x_x, t0));
-    //     // simdf32_store(&(on_screen_atoms[i].mY), simdf32_add(x_y, t1));
-    //     // simdf32_store(&(on_screen_atoms[i].mZ), simdf32_add(x_z, t2));
-    // }
-
 }
+
+
+
+void Protein::do_shift(float shift_mat[3]) {
+    for (auto& [chainID, chain_atoms] : on_screen_atoms) {  
+        if (!chain_atoms) continue;  // nullptr 체크
+
+        int num_atoms = num_chain_Atoms[chainID]; // 해당 체인의 원자 개수
+        for (int i = 0; i < num_atoms; ++i) {
+            chain_atoms[i].mX += shift_mat[0];
+            chain_atoms[i].mY += shift_mat[1];
+            chain_atoms[i].mZ += shift_mat[2];
+        }
+    }
+}
+
+

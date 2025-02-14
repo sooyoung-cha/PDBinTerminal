@@ -16,12 +16,16 @@ Screen::Screen(const int& width, const int& height, const bool& show_structure) 
     clear_screen();
 }
 
+Screen::~Screen() {
+    delete[] mScreen;
+}
+
 void Screen::set_protein(Protein* protein) {
   data = protein;
 }
 
 void Screen::set_zoom_level(float zoom){
-    if ((zoom_level + zoom > 0.5)&&(zoom_level + zoom < 1.5)){
+    if ((zoom_level + zoom > 0.1)&&(zoom_level + zoom < 3.0)){
         zoom_level += zoom;
     }
 }
@@ -29,23 +33,26 @@ void Screen::set_zoom_level(float zoom){
 void Screen::project() {
     float adjustedFOV = FOV / zoom_level;
     float fovRad = 1.0 / tan(adjustedFOV * 0.5 / 180.0 * PI);
-    std::unordered_map<char, std::unordered_map<int, Atom>> atoms = data->get_on_screen_atoms();  
+    std::map<char, Atom*> on_screen_atoms = data->get_on_screen_atoms();  
 
     float focal_offset = 10.0f; // 소실점을 뒤로 이동하기 위한 오프셋 추가
 
     clear_screen();
-    std::cout << "On Screen Atoms: " << atoms.size() << std::endl;
+    std::cout << "On Screen Atoms: " << on_screen_atoms.size() << std::endl;
 
-    for (const auto& [chainID, chain_atoms] : atoms) {  // 체인별 순회
-        for (const auto& [idx, atom] : chain_atoms) {  // 잔기별 순회
-            float* position = atom.get_position();  // 원자 좌표 가져오기
+    for (const auto& [chainID, chain_atoms] : on_screen_atoms) {  // 체인별 순회
+        if (!chain_atoms) continue;  // nullptr 체크
+
+        int num_atoms = data->get_num_chain_Atoms(chainID); // 해당 체인의 Atom 개수 가져오기
+        for (int i = 0; i < num_atoms; ++i) {  // 해당 체인의 원자 순회
+            float* position = chain_atoms[i].get_position();
             float x = position[0];
             float y = position[1];
             float z = position[2] + focal_offset; // z에 소실점 오프셋 적용
 
             char point = '*';
             if (screen_show_structure) {
-                point = atom.get_structure();
+                point = chain_atoms[i].get_structure();
             }
 
             if (z > 0) { // z 값이 양수일 때만 투영 계산
@@ -62,7 +69,6 @@ void Screen::project() {
     }
     std::cout << "Projecting done" << std::endl;
 }
-
 void Screen::clear_screen() {
     clear(); 
     std::fill(mScreen, mScreen + screen_height * screen_width, '_');
