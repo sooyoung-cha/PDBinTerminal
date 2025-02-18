@@ -27,7 +27,7 @@ void Screen::set_protein(Protein* protein) {
 }
 
 void Screen::set_zoom_level(float zoom){
-    if ((zoom_level + zoom > 0.1)&&(zoom_level + zoom < 3.0)){
+    if ((zoom_level + zoom > 0.5)&&(zoom_level + zoom < 2.0)){
         zoom_level += zoom;
     }
 }
@@ -124,12 +124,15 @@ void Screen::clear_screen() {
 }
 
 void Screen::print_screen() {
+    // 더블 버퍼링을 위한 메모리 버퍼
+    std::vector<std::vector<char>> buffer(screen_height, std::vector<char>(screen_width, ' '));
 
+    // ✅ 메모리 버퍼에 먼저 그리기
     for (int i = 0; i < screen_height; i++) {
         for (int j = 0; j < screen_width; j++) {
             char point = mScreen[i * screen_width + j];
 
-            // ✅ 현재 좌표에 있는 체인을 찾음
+            // 현재 좌표에 있는 체인을 찾음
             char chainID = ' ';
             for (const auto& [cID, buffer] : screen_buffer_by_chain) {
                 if (buffer[i * screen_width + j] == point) {
@@ -138,8 +141,31 @@ void Screen::print_screen() {
                 }
             }
 
+            // 체인 색상 적용
             if (chain_colors.find(chainID) != chain_colors.end()) {
                 int color_id = chain_colors[chainID];  
+                buffer[i][j] = point;  // 메모리 버퍼에 저장
+            } else {
+                buffer[i][j] = point;
+            }
+        }
+    }
+
+    // ✅ 한번에 화면 출력
+    for (int i = 0; i < screen_height; i++) {
+        for (int j = 0; j < screen_width; j++) {
+            char point = buffer[i][j];
+
+            char chainID = ' ';
+            for (const auto& [cID, buf] : screen_buffer_by_chain) {
+                if (buf[i * screen_width + j] == point) {
+                    chainID = cID;
+                    break;
+                }
+            }
+
+            if (chain_colors.find(chainID) != chain_colors.end()) {
+                int color_id = chain_colors[chainID];
                 attron(COLOR_PAIR(color_id));
                 mvaddch(i, j, point);
                 attroff(COLOR_PAIR(color_id));
@@ -148,8 +174,10 @@ void Screen::print_screen() {
             }
         }
     }
+
     refresh();
 }
+
 
 void Screen::drawScreen() {
     project();
