@@ -64,7 +64,6 @@ void Screen::project() {
     float fovRad = 1.0 / tan(adjustedFOV * 0.5 / 180.0 * PI);
     float focal_offset = 10.0f; // 소실점 오프셋
 
-    clear_screen();  // 기존 `mScreen` 초기화
     screen_buffer_by_chain.clear();  // ✅ 이전 데이터를 초기화
 
     std::unordered_map<char, std::vector<char>> chain_screen; // ✅ 체인별 mScreen 저장소
@@ -151,6 +150,7 @@ void Screen::print_screen() {
         }
     }
 
+    clear_screen();  // 기존 `mScreen` 초기화
     // ✅ 한번에 화면 출력
     for (int i = 0; i < screen_height; i++) {
         for (int j = 0; j < screen_width; j++) {
