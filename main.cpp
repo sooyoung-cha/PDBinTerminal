@@ -1,5 +1,6 @@
 #include <iostream>
 #include <ncurses.h>
+#include <unistd.h> 
 #include "src/structure/Protein.hpp"
 #include "src/structure/Parameters.hpp"
 #include "src/visualization/Screen.hpp"
@@ -26,6 +27,7 @@ int main(int argc, char* argv[]) {
     while(run) {
         screen.drawScreen();
         run = screen.handle_input();
+        usleep(33333);
     }
 
     endwin(); // ncurses 종료
