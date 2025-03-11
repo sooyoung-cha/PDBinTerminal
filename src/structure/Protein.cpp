@@ -101,7 +101,34 @@ void Protein::load_ca(const std::string& in_file, const std::string& target_chai
         return;
     }
 
+    // ✅ 1. 최소/최대 좌표 찾기
+    float min_x = std::numeric_limits<float>::max();
+    float min_y = std::numeric_limits<float>::max();
+    float min_z = std::numeric_limits<float>::max();
+    float max_x = std::numeric_limits<float>::lowest();
+    float max_y = std::numeric_limits<float>::lowest();
+    float max_z = std::numeric_limits<float>::lowest();
+
     std::string line;
+    while (getline(openFile, line)) {
+        if (line.substr(0, 4) == "ATOM" && line.substr(13, 2) == "CA") {
+            float x = std::stof(line.substr(30, 8));
+            float y = std::stof(line.substr(38, 8));
+            float z = std::stof(line.substr(46, 8));
+
+            min_x = std::min(min_x, x);
+            min_y = std::min(min_y, y);
+            min_z = std::min(min_z, z);
+            max_x = std::max(max_x, x);
+            max_y = std::max(max_y, y);
+            max_z = std::max(max_z, z);
+        }
+    }
+
+    openFile.clear();
+    openFile.seekg(0); // 파일 다시 읽기 준비
+
+    // ✅ 2. 정규화된 좌표 저장
     while (getline(openFile, line)) {
         if (line.substr(0, 4) == "ATOM" && line.substr(13, 2) == "CA") {
             char chainID = line[21];
@@ -112,11 +139,16 @@ void Protein::load_ca(const std::string& in_file, const std::string& target_chai
                 float y = std::stof(line.substr(38, 8));
                 float z = std::stof(line.substr(46, 8));
 
+                // ✅ 좌표 정규화 ([-1, 1] 범위로 조정)
+                x = 2 * (x - min_x) / (max_x - min_x) - 1;
+                y = 2 * (y - min_y) / (max_y - min_y) - 1;
+                z = 2 * (z - min_z) / (max_z - min_z) - 1;
+
                 if (init_atoms.count(chainID) && idx < num_chain_Atoms[chainID]) {
                     init_atoms[chainID][idx].set_position(x, y, z);
                     on_screen_atoms[chainID][idx].set_position(x, y, z);
                     
-                    if (show_structure){
+                    if (show_structure) {
                         for (const auto& [start_chainID, start, end_chainID, end, struct_type] : sec_struct_info) {
                             if (chainID == start_chainID && pdb_idx >= start && pdb_idx <= end) {
                                 init_atoms[chainID][idx].set_structure(struct_type);
@@ -131,6 +163,7 @@ void Protein::load_ca(const std::string& in_file, const std::string& target_chai
 
     openFile.close();
 }
+
 
 
 void Protein::load_data(const std::string& in_file, const std::string& target_chains, const bool& show_structure) {
@@ -179,7 +212,7 @@ void Protein::set_rotate(int x_rotate, int y_rotate, int z_rotate){
 }
 
 
-void Protein::set_shift(int shift_x, int shift_y, int shift_z) { 
+void Protein::set_shift(float shift_x, float shift_y, float shift_z) { 
     float shift_mat[3] = {shift_x, shift_y, shift_z};
     do_shift(shift_mat);
 }

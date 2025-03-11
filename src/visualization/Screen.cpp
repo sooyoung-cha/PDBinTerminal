@@ -12,7 +12,7 @@ Screen::Screen(const int& width, const int& height, const bool& show_structure) 
     screen_show_structure = show_structure;
     aspect_ratio = (float)screen_width / screen_height;
     mScreen = new char[screen_height * screen_width];
-    zoom_level = 0.75;
+    zoom_level = 10;
     clear_screen();
 
 }
@@ -27,7 +27,7 @@ void Screen::set_protein(Protein* protein) {
 }
 
 void Screen::set_zoom_level(float zoom){
-    if ((zoom_level + zoom > 0.5)&&(zoom_level + zoom < 1)){
+    if ((zoom_level + zoom > 0)&&(zoom_level + zoom < 30)){
         zoom_level += zoom;
     }
 }
@@ -66,12 +66,13 @@ void Screen::drawLine(std::vector<char>& buffer, int x1, int y1, int x2, int y2,
         float depthFactor = (z1 + z2) * 0.5f;  // 두 점의 평균 깊이
         char pixelChar = ' ';
 
-        if (depthFactor < 5.0) pixelChar = '#';  // 가까운 선 (짙음)
-        else if (depthFactor < 10.0) pixelChar = '@';
-        else if (depthFactor < 15.0) pixelChar = '%';
-        else if (depthFactor < 20.0) pixelChar = '*';
-        else if (depthFactor < 30.0) pixelChar = ':';
-        else pixelChar = '.';  // 먼 선 (연함)
+        // depthFactor가 10~11 사이이므로, 매우 작은 범위로 threshold 설정
+        if (depthFactor < 9.75) pixelChar = '#';  // 가장 가까운 선 (짙음)
+        else if (depthFactor < 9.85) pixelChar = '@';
+        else if (depthFactor < 9.95) pixelChar = '%';
+        else if (depthFactor < 10.05) pixelChar = '*';
+        else if (depthFactor < 10.25) pixelChar = ':';
+        else pixelChar = '.';  // 가장 먼 선 (연함)
 
         if (x1 >= 0 && x1 < width && y1 >= 0 && y1 < buffer.size() / width) {
             buffer[y1 * width + x1] = pixelChar;
@@ -85,6 +86,7 @@ void Screen::drawLine(std::vector<char>& buffer, int x1, int y1, int x2, int y2,
 }
 
 
+
 void Screen::project() {
     float adjustedFOV = FOV / zoom_level;
     float fovRad = 1.0 / tan(adjustedFOV * 0.5 / 180.0 * PI);
@@ -92,87 +94,98 @@ void Screen::project() {
 
     screen_buffer_by_chain.clear();
     std::unordered_map<char, std::vector<char>> chain_screen;
+    std::unordered_map<char, std::vector<float>> depth_buffer_by_chain; // 체인별 depth_buffer 추가
 
+    // 체인별 버퍼 초기화
     for (const auto& [chainID, chain_atoms] : data->get_on_screen_atoms()) {  
-        if (!chain_atoms) continue; // nullptr 체크
+        if (!chain_atoms) continue;
         int num_atoms = data->get_num_chain_Atoms(chainID); 
 
-        if (chain_screen.find(chainID) == chain_screen.end()) {
-            chain_screen[chainID] = std::vector<char>(screen_width * screen_height, ' ');
-        }
+        chain_screen[chainID] = std::vector<char>(screen_width * screen_height, ' ');
+        depth_buffer_by_chain[chainID] = std::vector<float>(screen_width * screen_height, std::numeric_limits<float>::max());
+    }
 
-        // 선 그리기
-        int prevScreenX = -1, prevScreenY = -1; // 이전 원자의 좌표 저장
+    //  체인별로 개별 depth_buffer 사용하여 Z값 반영
+    for (const auto& [chainID, chain_atoms] : data->get_on_screen_atoms()) {  
+        if (!chain_atoms) continue;
+        int num_atoms = data->get_num_chain_Atoms(chainID); 
+
+        int prevScreenX = -1, prevScreenY = -1;
         float prevZ = -1.0f;
         for (int i = 0; i < num_atoms; ++i) {  
             float* position = chain_atoms[i].get_position();
             float x = position[0];
             float y = position[1];
             float z = position[2] + focal_offset;
-            if (z > 0) {  
-                float projectedX = (x / z) * fovRad * aspect_ratio;
-                float projectedY = (y / z) * fovRad;
-                int screenX = (int)((projectedX + 1.0) * 0.5 * screen_width);
-                int screenY = (int)((1.0 - projectedY) * 0.5 * screen_height);
 
-                bool isInsideScreen = (screenX >= 0 && screenX < screen_width && screenY >= 0 && screenY < screen_height);
+            float projectedX = (x / z) * fovRad * aspect_ratio;
+            float projectedY = (y / z) * fovRad;
+            int screenX = (int)((projectedX + 1.0) * 0.5 * screen_width);
+            int screenY = (int)((1.0 - projectedY) * 0.5 * screen_height);
 
-                // 선 연결 (이전 원자가 존재하는 경우)
-                if (prevScreenX != -1 && prevScreenY != -1 && prevZ != -1.0f) {
-                    if (isInsideScreen || (prevScreenX >= 0 && prevScreenX < screen_width && prevScreenY >= 0 && prevScreenY < screen_height)) {
-                        // 깊이(z 값)를 추가하여 선을 그림
-                        drawLine(chain_screen[chainID], prevScreenX, prevScreenY, screenX, screenY, screen_width, prevZ, z);
-                    }
+            bool isInsideScreen = (screenX >= 0 && screenX < screen_width && screenY >= 0 && screenY < screen_height);
+
+            if (isInsideScreen) {
+                int index = screenY * screen_width + screenX;
+                if (z < depth_buffer_by_chain[chainID][index]) {  
+                    depth_buffer_by_chain[chainID][index] = z; 
+                    chain_screen[chainID][index] = '*';
                 }
-
-                // 화면 밖이어도 좌표를 업데이트하여 연결 유지
-                prevScreenX = screenX;
-                prevScreenY = screenY;
-                prevZ = z;
             }
+
+            if (prevScreenX != -1 && prevScreenY != -1 && prevZ != -1.0f) {
+                drawLine(chain_screen[chainID], prevScreenX, prevScreenY, screenX, screenY, screen_width, prevZ, z);
+            }
+
+            prevScreenX = screenX;
+            prevScreenY = screenY;
+            prevZ = z;
         }
-        
+
         // structure 그리기
         for (int i = 0; i < num_atoms; ++i) {  
             if (chain_atoms[i].get_structure() != '*'){
                 float* position = chain_atoms[i].get_position();
                 float x = position[0];
                 float y = position[1];
-                float z = position[2] + focal_offset; // z에 소실점 오프셋 적용
+                float z = position[2] + focal_offset;
 
-                char point = '*';
-                if (screen_show_structure) {
-                    point = chain_atoms[i].get_structure();
-                }
+                char point = screen_show_structure ? chain_atoms[i].get_structure() : '*';
 
-                if (z > 0) {  
-                    float projectedX = (x / z) * fovRad * aspect_ratio;
-                    float projectedY = (y / z) * fovRad;
-                    int screenX = (int)((projectedX + 1.0) * 0.5 * screen_width);
-                    int screenY = (int)((1.0 - projectedY) * 0.5 * screen_height);
+                float projectedX = (x / z) * fovRad * aspect_ratio;
+                float projectedY = (y / z) * fovRad;
+                int screenX = (int)((projectedX + 1.0) * 0.5 * screen_width);
+                int screenY = (int)((1.0 - projectedY) * 0.5 * screen_height);
 
-                    if (screenX >= 0 && screenX < screen_width && screenY >= 0 && screenY < screen_height) {
-                        if (screen_show_structure) {
-                            chain_screen[chainID][screenY * screen_width + screenX] = chain_atoms[i].get_structure();
-                        }   
-                        else {
-                            chain_screen[chainID][screenY * screen_width + screenX] = '*';
-                        }                 
+                if (screenX >= 0 && screenX < screen_width && screenY >= 0 && screenY < screen_height) {
+                    int index = screenY * screen_width + screenX;
+                    if (z < depth_buffer_by_chain[chainID][index]) {  
+                        depth_buffer_by_chain[chainID][index] = z;
+                        chain_screen[chainID][index] = point;
                     }
                 }
             }
         }
     }
 
-    // ✅ 최종적으로 `mScreen`에 반영
+    //  체인별 정보를 합칠 때 depth 비교하여 덮어쓰지 않도록 처리
+    std::vector<float> final_depth_buffer(screen_width * screen_height, std::numeric_limits<float>::max());
+    std::vector<char> final_screen(screen_width * screen_height, ' ');
+
     for (const auto& [chainID, buffer] : chain_screen) {
+        const auto& depth_buffer = depth_buffer_by_chain[chainID];
         for (int i = 0; i < screen_width * screen_height; ++i) {
             if (buffer[i] != ' ') {  
-                mScreen[i] = buffer[i];
+                if (depth_buffer[i] < final_depth_buffer[i]) {  //  최종 깊이 비교
+                    final_depth_buffer[i] = depth_buffer[i];
+                    final_screen[i] = buffer[i];
+                }
             }
         }
     }
 
+    std::copy(final_screen.begin(), final_screen.end(), mScreen);
+    
     screen_buffer_by_chain = chain_screen;
 }
 
@@ -186,7 +199,7 @@ void Screen::print_screen() {
     // 더블 버퍼링을 위한 메모리 버퍼
     std::vector<std::vector<char>> buffer(screen_height, std::vector<char>(screen_width, ' '));
 
-    // ✅ 메모리 버퍼에 먼저 그리기
+    //  메모리 버퍼에 먼저 그리기
     for (int i = 0; i < screen_height; i++) {
         for (int j = 0; j < screen_width; j++) {
             char point = mScreen[i * screen_width + j];
@@ -211,7 +224,7 @@ void Screen::print_screen() {
     }
 
     clear_screen();  // 기존 `mScreen` 초기화
-    // ✅ 한번에 화면 출력
+    //  한번에 화면 출력
     for (int i = 0; i < screen_height; i++) {
         for (int j = 0; j < screen_width; j++) {
             char point = buffer[i][j];
@@ -250,22 +263,22 @@ bool Screen::handle_input(){
         // W, w (y 축 양의 이동)
         case 119:
         case 87:
-            data->set_shift(0, 1, 0);
+            data->set_shift(0, 0.1, 0);
             break;
         // A, a (x 축 음의 이동)
         case 97:
         case 65:
-            data->set_shift(-1, 0, 0);
+            data->set_shift(-0.1, 0, 0);
             break;
         // S, s (y 축 음의 이동)
         case 115:
         case 83:
-            data->set_shift(0, -1, 0);
+            data->set_shift(0, -0.1, 0);
             break;      
         // D, d (x 축 양의 이동)
         case 100:
         case 68:
-            data->set_shift(1, 0, 0);
+            data->set_shift(0.1, 0, 0);
             break;
 
         // X, x (x 축 중심 회전)
@@ -287,12 +300,12 @@ bool Screen::handle_input(){
         // R, R (줌 인)
         case 114:
         case 82:
-            set_zoom_level(0.002);
+            set_zoom_level(0.2);
             break;   
         // F, f (줌 아웃)
         case 102:
         case 70:
-            set_zoom_level(-0.002);
+            set_zoom_level(-0.2);
             break;   
 
         // Q, q

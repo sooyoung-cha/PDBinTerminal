@@ -16,7 +16,7 @@ public:
   int& get_num_chain_Atoms(char chainID);
 
   int get_length();
-  void set_shift(int x_move, int y_move, int z_move);
+  void set_shift(float shift_x, float shift_y, float shift_z);
   void set_rotate(int x_rotate, int y_rotate, int z_rotate);
 
 private:
