@@ -5,12 +5,13 @@
 using namespace std;
 
 class Parameters{
-    // private:
+    private:
         string in_file = "./test.pdb";
         string format = "pdb";
         string chains = "";
         int model = 1;
-        int boxsize = 20;
+        int width = 1;
+        int height = 1;
         bool show_structure = false;
         bool arg_okay = true;
 
@@ -18,6 +19,8 @@ class Parameters{
         Parameters(int argc, char* argv[]);
 
         void print_args();
+
+        bool is_valid_number(const std::string& str, int min, int max);
 
         // get, set
         string get_in_file(){
@@ -29,11 +32,11 @@ class Parameters{
         string get_chains(){
             return chains;
         }
-        int get_model(){
-            return model;
+        int get_width(){
+            return width;
         }
-        int get_boxsize(){
-            return boxsize;
+        int get_height(){
+            return height;
         }
         bool get_show_structure(){
             return show_structure;

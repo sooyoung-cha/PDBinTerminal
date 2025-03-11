@@ -1,5 +1,26 @@
 #include "Parameters.hpp"
 
+bool Parameters::is_valid_number(const std::string& str, int min, int max) {
+    try {
+        // 입력값이 숫자인지 확인
+        for (char c : str) {
+            if (!std::isdigit(c)) return false;
+        }
+
+        // 문자열을 정수로 변환
+        int value = std::stoi(str);
+
+        // 범위 확인
+        if (value < min || value > max) {
+            return false;
+        }
+
+        return true;
+    } catch (const std::exception&) {
+        return false;
+    }
+}
+
 Parameters::Parameters(int argc, char* argv[]) {
     arg_okay = true;
     chains = "";  // ⬅ 기본값 설정 (문제 1 해결)
@@ -45,12 +66,28 @@ Parameters::Parameters(int argc, char* argv[]) {
                     throw std::runtime_error("Missing argument for -c / --chains.");
                 }
             }
-            else if (!strcmp(argv[i], "-b") || !strcmp(argv[i], "--boxsize")) {
-                if (i + 1 < argc && isdigit(argv[i+1][0])) {
-                    boxsize = atoi(argv[i+1]);
-                    i++;
+            else if (!strcmp(argv[i], "-w") || !strcmp(argv[i], "--width")) {
+                if (i + 1 < argc) {
+                    if (is_valid_number(argv[i + 1], 1, 5)) {
+                        width = std::stoi(argv[i + 1]) * 40 + 40;
+                        ++i; 
+                    } else {
+                        throw std::runtime_error("Error: Parameter must be an integer between 1 and 5.");
+                    }
                 } else {
-                    throw std::runtime_error("Invalid or missing argument for -b / --boxsize.");
+                    throw std::runtime_error("Error: Missing value for -w / --width.");
+                }
+            }
+            else if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--height")) {
+                if (i + 1 < argc) {
+                    if (is_valid_number(argv[i + 1], 1, 5)) {
+                        height = std::stoi(argv[i + 1]) * 10 + 30;
+                        ++i; 
+                    } else {
+                        throw std::runtime_error("Error: Parameter must be an integer between 1 and 5.");
+                    }
+                } else {
+                    throw std::runtime_error("Error: Missing value for -h / --height.");
                 }
             }
             else if (!strcmp(argv[i], "-s") || !strcmp(argv[i], "--structure")) {
@@ -75,7 +112,8 @@ void Parameters::print_args() {
     cout << "  format: " << format << endl;
     cout << "  model: " << model << endl;
     cout << "  chains: " << chains << endl;
-    cout << "  boxsize: " << boxsize << endl;
+    cout << "  width: " << width << endl;
+    cout << "  height: " << height << endl;
     cout << "  show_structure: " << show_structure << endl;
     return;
 }

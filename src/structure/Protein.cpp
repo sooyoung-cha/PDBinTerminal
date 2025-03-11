@@ -148,7 +148,8 @@ void Protein::load_data(const std::string& in_file, const std::string& target_ch
 
 void Protein::set_rotate(int x_rotate, int y_rotate, int z_rotate){
     const float PI = 3.14159265359;
-    const float UNIT = 12;
+    // const float UNIT = 12;
+    const float UNIT = 48;
 
     if (x_rotate != 0) {
         float rotate_mat[3][3] = {
