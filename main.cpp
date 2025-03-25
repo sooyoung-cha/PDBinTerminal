@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
     while(run) {
         screen.drawScreen();
         run = screen.handle_input();
-        usleep(100000);
+        usleep(100);
     }
 
     endwin(); // ncurses 종료
