@@ -12,7 +12,7 @@ Screen::Screen(const int& width, const int& height, const bool& show_structure) 
     screen_show_structure = show_structure;
     aspect_ratio = (float)screen_width / screen_height;
     mScreen = new char[screen_height * screen_width];
-    zoom_level = 10;
+    zoom_level = 3;
     clear_screen();
 
 }
@@ -27,7 +27,7 @@ void Screen::set_protein(Protein* protein) {
 }
 
 void Screen::set_zoom_level(float zoom){
-    if ((zoom_level + zoom > 0)&&(zoom_level + zoom < 30)){
+    if ((zoom_level + zoom > 0.5)&&(zoom_level + zoom < 10)){
         zoom_level += zoom;
     }
 }
@@ -57,34 +57,63 @@ void Screen::initialize_colors() {
     }
 }
 
-void Screen::drawLine(std::vector<char>& buffer, int x1, int y1, int x2, int y2, int width, float z1, float z2) {
-    int dx = abs(x2 - x1), dy = abs(y2 - y1);
-    int sx = (x1 < x2) ? 1 : -1, sy = (y1 < y2) ? 1 : -1;
-    int err = dx - dy;
+void Screen::drawLine(std::vector<char>& buffer, 
+                      std::vector<float>& depth_buffer,                    
+                      int x1, int y1, 
+                      int x2, int y2,
+                      int width, 
+                      float z1, float z2) {
+    int dx = x2 - x1;
+    int dy = y2 - y1;
+    int steps = std::max(abs(dx), abs(dy));
+    if (steps == 0) steps = 1;
 
-    while (true) {
-        float depthFactor = (z1 + z2) * 0.5f;  // 두 점의 평균 깊이
-        char pixelChar = ' ';
+    float xIncrement = (float)dx / steps;
+    float yIncrement = (float)dy / steps;
+    float zIncrement = (z2 - z1) / steps;
 
-        // depthFactor가 10~11 사이이므로, 매우 작은 범위로 threshold 설정
-        if (depthFactor < 9.75) pixelChar = '#';  // 가장 가까운 선 (짙음)
-        else if (depthFactor < 9.85) pixelChar = '@';
-        else if (depthFactor < 9.95) pixelChar = '%';
-        else if (depthFactor < 10.05) pixelChar = '*';
-        else if (depthFactor < 10.25) pixelChar = ':';
-        else pixelChar = '.';  // 가장 먼 선 (연함)
+    float x = x1;
+    float y = y1;
+    float z = z1;
 
-        if (x1 >= 0 && x1 < width && y1 >= 0 && y1 < buffer.size() / width) {
-            buffer[y1 * width + x1] = pixelChar;
+    for (int i = 0; i <= steps; ++i) {
+        int ix = static_cast<int>(x);
+        int iy = static_cast<int>(y);
+        int index = iy * width + ix;
+
+        if (ix >= 0 && ix < width && iy >= 0 && index < buffer.size()) {
+            if (z < depth_buffer[index]) {
+                depth_buffer[index] = z;
+                buffer[index] = getPixelCharFromDepth(z);
+            }
         }
 
-        if (x1 == x2 && y1 == y2) break;
-        int e2 = 2 * err;
-        if (e2 > -dy) { err -= dy; x1 += sx; }
-        if (e2 < dx) { err += dx; y1 += sy; }
+        x += xIncrement;
+        y += yIncrement;
+        z += zIncrement;
     }
 }
 
+
+
+
+char Screen::getPixelCharFromDepth(float z) {
+    // if (z < 9.75) return '#';
+    // else if (z < 9.85) return '@';
+    // else if (z < 9.95) return '%';
+    // else if (z < 10.05) return '*';
+    // else if (z < 10.25) return '^';
+    // else if (z < 10.35) return '.';
+    // else return '_';
+
+    if (z < 9.30) return '#';
+    else if (z < 9.50) return '@';
+    else if (z < 9.70) return '%';
+    else if (z < 9.90) return '*';
+    else if (z < 10.10) return '^';
+    else if (z < 10.30) return '.';
+    else return '_';
+}
 
 
 void Screen::project() {
@@ -118,7 +147,8 @@ void Screen::project() {
             float y = position[1];
             float z = position[2] + focal_offset;
 
-            float projectedX = (x / z) * fovRad * aspect_ratio;
+            //float projectedX = (x / z) * fovRad * aspect_ratio;
+            float projectedX = (x / z) * fovRad;
             float projectedY = (y / z) * fovRad;
             int screenX = (int)((projectedX + 1.0) * 0.5 * screen_width);
             int screenY = (int)((1.0 - projectedY) * 0.5 * screen_height);
@@ -129,48 +159,23 @@ void Screen::project() {
                 int index = screenY * screen_width + screenX;
                 if (z < depth_buffer_by_chain[chainID][index]) {  
                     depth_buffer_by_chain[chainID][index] = z; 
-                    chain_screen[chainID][index] = '*';
+                    float depth_z = (z + focal_offset) / zoom_level;
+                    chain_screen[chainID][index] = getPixelCharFromDepth(z);
                 }
             }
-
-            if (prevScreenX != -1 && prevScreenY != -1 && prevZ != -1.0f) {
-                drawLine(chain_screen[chainID], prevScreenX, prevScreenY, screenX, screenY, screen_width, prevZ, z);
+            if (prevScreenX != -1 && prevScreenY != -1){
+                drawLine(chain_screen[chainID], depth_buffer_by_chain[chainID], prevScreenX, prevScreenY, screenX, screenY, screen_width, prevZ, z);
             }
 
             prevScreenX = screenX;
             prevScreenY = screenY;
             prevZ = z;
         }
-
-        // structure 그리기
-        for (int i = 0; i < num_atoms; ++i) {  
-            if (chain_atoms[i].get_structure() != '*'){
-                float* position = chain_atoms[i].get_position();
-                float x = position[0];
-                float y = position[1];
-                float z = position[2] + focal_offset;
-
-                char point = screen_show_structure ? chain_atoms[i].get_structure() : '*';
-
-                float projectedX = (x / z) * fovRad * aspect_ratio;
-                float projectedY = (y / z) * fovRad;
-                int screenX = (int)((projectedX + 1.0) * 0.5 * screen_width);
-                int screenY = (int)((1.0 - projectedY) * 0.5 * screen_height);
-
-                if (screenX >= 0 && screenX < screen_width && screenY >= 0 && screenY < screen_height) {
-                    int index = screenY * screen_width + screenX;
-                    if (z < depth_buffer_by_chain[chainID][index]) {  
-                        depth_buffer_by_chain[chainID][index] = z;
-                        chain_screen[chainID][index] = point;
-                    }
-                }
-            }
-        }
     }
 
     //  체인별 정보를 합칠 때 depth 비교하여 덮어쓰지 않도록 처리
     std::vector<float> final_depth_buffer(screen_width * screen_height, std::numeric_limits<float>::max());
-    std::vector<char> final_screen(screen_width * screen_height, ' ');
+    std::vector<char> final_screen(screen_width * screen_height, '_');
 
     for (const auto& [chainID, buffer] : chain_screen) {
         const auto& depth_buffer = depth_buffer_by_chain[chainID];
@@ -178,13 +183,11 @@ void Screen::project() {
             if (buffer[i] != ' ') {  
                 if (depth_buffer[i] < final_depth_buffer[i]) {  //  최종 깊이 비교
                     final_depth_buffer[i] = depth_buffer[i];
-                    final_screen[i] = buffer[i];
+                    mScreen[i] = buffer[i];
                 }
             }
         }
     }
-
-    std::copy(final_screen.begin(), final_screen.end(), mScreen);
     
     screen_buffer_by_chain = chain_screen;
 }

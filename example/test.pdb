@@ -1,0 +1,230 @@
+HEADER    DE NOVO PROTEIN                         18-APR-13   2M7C              
+TITLE     CIRCULAR PERMUTATION OF THE TRP-CAGE: FOLD RESCUE UPON ADDITION OF A  
+TITLE    2 HYDROPHOBIC STAPLE                                                   
+COMPND    MOL_ID: 1;                                                            
+COMPND   2 MOLECULE: TRP-CAGE MINI-PROTEIN;                                     
+COMPND   3 CHAIN: A;                                                            
+COMPND   4 ENGINEERED: YES                                                      
+SOURCE    MOL_ID: 1;                                                            
+SOURCE   2 SYNTHETIC: YES                                                       
+KEYWDS    MINIPROTEIN, DE NOVO PROTEIN, TRP-CAGE, CIRCULAR PERMUTANT,           
+KEYWDS   2 MICROPROTEIN                                                         
+EXPDTA    SOLUTION NMR                                                          
+NUMMDL    32                                                                    
+AUTHOR    A.BYRNE,N.H.ANDERSEN,B.L.KIER                                         
+REVDAT   3   14-JUN-23 2M7C    1       REMARK LINK                              
+REVDAT   2   15-JAN-14 2M7C    1       JRNL                                     
+REVDAT   1   25-DEC-13 2M7C    0                                                
+JRNL        AUTH   A.BYRNE,B.L.KIER,D.V.WILLIAMS,M.SCIAN,N.H.ANDERSEN           
+JRNL        TITL   CIRCULAR PERMUTATION OF THE TRP-CAGE: FOLD RESCUE UPON       
+JRNL        TITL 2 ADDITION OF A HYDROPHOBIC STAPLE.                            
+JRNL        REF    RSC ADV                       V.2013 19824 2013              
+JRNL        REFN                   ESSN 2046-2069                               
+JRNL        PMID   24376912                                                     
+JRNL        DOI    10.1039/C3RA43674H                                           
+REMARK   2                                                                      
+REMARK   2 RESOLUTION. NOT APPLICABLE.                                          
+REMARK   3                                                                      
+REMARK   3 REFINEMENT.                                                          
+REMARK   3   PROGRAM     : CNS 1.2, CNS                                         
+REMARK   3   AUTHORS     : BRUNGER, ADAMS, CLORE, GROS, NILGES AND READ         
+REMARK   3  (CNS), BRUNGER,ADAMS,CLORE,DELANO,GROS,GROSSE-KUNSTLEVE,JIANG,      
+REMARK   3  KUSZEWSKI,NILGES, PANNU,READ,RICE,SIMONSON,WARREN (CNS)             
+REMARK   3                                                                      
+REMARK   3  OTHER REFINEMENT REMARKS: INCORPORATED LJ POTENTIAL RELAX AS        
+REMARK   3  EXTRA FINAL STEP FOR IMPROVED REFINEMENT.                           
+REMARK   4                                                                      
+REMARK   4 2M7C COMPLIES WITH FORMAT V. 3.30, 13-JUL-11                         
+REMARK 100                                                                      
+REMARK 100 THIS ENTRY HAS BEEN PROCESSED BY RCSB ON 19-APR-13.                  
+REMARK 100 THE DEPOSITION ID IS D_1000103300.                                   
+REMARK 210                                                                      
+REMARK 210 EXPERIMENTAL DETAILS                                                 
+REMARK 210  EXPERIMENT TYPE                : NMR                                
+REMARK 210  TEMPERATURE           (KELVIN) : 280                                
+REMARK 210  PH                             : 7                                  
+REMARK 210  IONIC STRENGTH                 : 0.11                               
+REMARK 210  PRESSURE                       : AMBIENT                            
+REMARK 210  SAMPLE CONTENTS                : 50 MM SODIUM PHOSPHATE, 90%        
+REMARK 210                                   H2O/10% D2O                        
+REMARK 210                                                                      
+REMARK 210  NMR EXPERIMENTS CONDUCTED      : 2D 1H-1H NOESY                     
+REMARK 210  SPECTROMETER FIELD STRENGTH    : 800 MHZ                            
+REMARK 210  SPECTROMETER MODEL             : DMX                                
+REMARK 210  SPECTROMETER MANUFACTURER      : BRUKER                             
+REMARK 210                                                                      
+REMARK 210  STRUCTURE DETERMINATION.                                            
+REMARK 210   SOFTWARE USED                 : NULL                               
+REMARK 210   METHOD USED                   : SIMULATED ANNEALING                
+REMARK 210                                                                      
+REMARK 210 CONFORMERS, NUMBER CALCULATED   : 40                                 
+REMARK 210 CONFORMERS, NUMBER SUBMITTED    : 32                                 
+REMARK 210 CONFORMERS, SELECTION CRITERIA  : STRUCTURES WITH THE LOWEST         
+REMARK 210                                   ENERGY                             
+REMARK 210                                                                      
+REMARK 210 BEST REPRESENTATIVE CONFORMER IN THIS ENSEMBLE : 1                   
+REMARK 210                                                                      
+REMARK 210 REMARK: NULL                                                         
+REMARK 215                                                                      
+REMARK 215 NMR STUDY                                                            
+REMARK 215 THE COORDINATES IN THIS ENTRY WERE GENERATED FROM SOLUTION           
+REMARK 215 NMR DATA.  PROTEIN DATA BANK CONVENTIONS REQUIRE THAT                
+REMARK 215 CRYST1 AND SCALE RECORDS BE INCLUDED, BUT THE VALUES ON              
+REMARK 215 THESE RECORDS ARE MEANINGLESS.                                       
+REMARK 300                                                                      
+REMARK 300 BIOMOLECULE: 1                                                       
+REMARK 300 SEE REMARK 350 FOR THE AUTHOR PROVIDED AND/OR PROGRAM                
+REMARK 300 GENERATED ASSEMBLY INFORMATION FOR THE STRUCTURE IN                  
+REMARK 300 THIS ENTRY. THE REMARK MAY ALSO PROVIDE INFORMATION ON               
+REMARK 300 BURIED SURFACE AREA.                                                 
+REMARK 350                                                                      
+REMARK 350 COORDINATES FOR A COMPLETE MULTIMER REPRESENTING THE KNOWN           
+REMARK 350 BIOLOGICALLY SIGNIFICANT OLIGOMERIZATION STATE OF THE                
+REMARK 350 MOLECULE CAN BE GENERATED BY APPLYING BIOMT TRANSFORMATIONS          
+REMARK 350 GIVEN BELOW.  BOTH NON-CRYSTALLOGRAPHIC AND                          
+REMARK 350 CRYSTALLOGRAPHIC OPERATIONS ARE GIVEN.                               
+REMARK 350                                                                      
+REMARK 350 BIOMOLECULE: 1                                                       
+REMARK 350 AUTHOR DETERMINED BIOLOGICAL UNIT: MONOMERIC                         
+REMARK 350 APPLY THE FOLLOWING TO CHAINS: A                                     
+REMARK 350   BIOMT1   1  1.000000  0.000000  0.000000        0.00000            
+REMARK 350   BIOMT2   1  0.000000  1.000000  0.000000        0.00000            
+REMARK 350   BIOMT3   1  0.000000  0.000000  1.000000        0.00000            
+REMARK 500                                                                      
+REMARK 500 GEOMETRY AND STEREOCHEMISTRY                                         
+REMARK 500 SUBTOPIC: TORSION ANGLES                                             
+REMARK 500                                                                      
+REMARK 500 TORSION ANGLES OUTSIDE THE EXPECTED RAMACHANDRAN REGIONS:            
+REMARK 500 (M=MODEL NUMBER; RES=RESIDUE NAME; C=CHAIN IDENTIFIER;               
+REMARK 500 SSEQ=SEQUENCE NUMBER; I=INSERTION CODE).                             
+REMARK 500                                                                      
+REMARK 500 STANDARD TABLE:                                                      
+REMARK 500 FORMAT:(10X,I3,1X,A3,1X,A1,I4,A1,4X,F7.2,3X,F7.2)                    
+REMARK 500                                                                      
+REMARK 500 EXPECTED VALUES: GJ KLEYWEGT AND TA JONES (1996). PHI/PSI-           
+REMARK 500 CHOLOGY: RAMACHANDRAN REVISITED. STRUCTURE 4, 1395 - 1400            
+REMARK 500                                                                      
+REMARK 500  M RES CSSEQI        PSI       PHI                                   
+REMARK 500  2 PRO A   3      108.90    -58.89                                   
+REMARK 500  2 ASP A   6      132.48    -39.69                                   
+REMARK 500  2 ALA A  20       43.11    -92.59                                   
+REMARK 500  3 ALA A  20       42.77    -92.81                                   
+REMARK 500  4 ALA A  20       41.40    -92.04                                   
+REMARK 500  5 ALA A  20       41.98    -94.06                                   
+REMARK 500  6 ALA A  20       41.88    -94.50                                   
+REMARK 500  7 ALA A  20       40.13    -90.95                                   
+REMARK 500  8 ALA A  20       41.26    -94.66                                   
+REMARK 500 10 ALA A  20       43.71    -91.15                                   
+REMARK 500 11 ALA A  20       42.23    -92.93                                   
+REMARK 500 12 ALA A  20       42.50    -93.75                                   
+REMARK 500 13 ALA A  20       35.05    -97.56                                   
+REMARK 500 14 ASP A   6      132.94    -38.09                                   
+REMARK 500 14 ALA A  20       41.87    -91.84                                   
+REMARK 500 15 ALA A  20       41.97    -91.27                                   
+REMARK 500 16 ALA A  20       43.28    -90.82                                   
+REMARK 500 17 ASP A   6      152.76    -46.40                                   
+REMARK 500 17 ALA A  20       41.28    -92.39                                   
+REMARK 500 18 ALA A  20       42.14    -90.43                                   
+REMARK 500 19 ALA A  20       41.65    -93.08                                   
+REMARK 500 20 ALA A  20       41.02    -95.46                                   
+REMARK 500 21 ALA A  20       43.48    -91.45                                   
+REMARK 500 22 ALA A  20       41.44    -95.30                                   
+REMARK 500 23 ALA A  20       42.28    -91.10                                   
+REMARK 500 24 ASP A   6      151.66    -49.68                                   
+REMARK 500 24 ALA A  20       43.47    -91.83                                   
+REMARK 500 25 ALA A  20       41.17    -90.01                                   
+REMARK 500 26 ASP A   6      150.89    -48.90                                   
+REMARK 500 26 ALA A  20       42.22    -94.10                                   
+REMARK 500 27 ASP A   6      151.00    -47.66                                   
+REMARK 500 27 ALA A  20       43.88    -91.82                                   
+REMARK 500 28 ALA A  20       41.42    -91.89                                   
+REMARK 500 29 ALA A  20       42.78    -91.87                                   
+REMARK 500 30 ALA A  20       33.14    -97.76                                   
+REMARK 500 32 ALA A  20       42.16    -91.78                                   
+REMARK 500                                                                      
+REMARK 500 REMARK: NULL                                                         
+REMARK 800                                                                      
+REMARK 800 SITE                                                                 
+REMARK 800 SITE_IDENTIFIER: AC1                                                 
+REMARK 800 EVIDENCE_CODE: SOFTWARE                                              
+REMARK 800 SITE_DESCRIPTION: BINDING SITE FOR RESIDUE DAL A 17                  
+REMARK 900                                                                      
+REMARK 900 RELATED ENTRIES                                                      
+REMARK 900 RELATED ID: 2LL5   RELATED DB: PDB                                   
+REMARK 900 CYCLO-TC1 TRP-CAGE                                                   
+REMARK 900 RELATED ID: 3UC7   RELATED DB: PDB                                   
+REMARK 900 RELATED ID: 3UC8   RELATED DB: PDB                                   
+REMARK 900 RELATED ID: 2JOF   RELATED DB: PDB                                   
+REMARK 900 RELATED ID: 1L2Y   RELATED DB: PDB                                   
+REMARK 900 RELATED ID: 2LDJ   RELATED DB: PDB                                   
+REMARK 900 RELATED ID: 19180   RELATED DB: BMRB                                 
+REMARK 900 RELATED ID: 2M7D   RELATED DB: PDB                                   
+DBREF  2M7C A    1    21  PDB    2M7C     2M7C             1     21             
+SEQRES   1 A   21  ARG PRO PRO PRO SER ASP AIB ALA ALA TYR ALA GLN TRP          
+SEQRES   2 A   21  LEU ALA ASP DAL GLY TRP ALA SER                              
+MODRES 2M7C AIB A    7  ALA  ALPHA-AMINOISOBUTYRIC ACID                         
+HET    AIB  A   7      13                                                       
+HET    DAL  A  17      10                                                       
+HETNAM     AIB ALPHA-AMINOISOBUTYRIC ACID                                       
+HETNAM     DAL D-ALANINE                                                        
+FORMUL   1  AIB    C4 H9 N O2                                                   
+FORMUL   1  DAL    C3 H7 N O2                                                   
+HELIX    1   1 ASP A    6  ASP A   16  1                                  11    
+LINK         C   ASP A   6                 N   AIB A   7     1555   1555  1.34  
+LINK         C   AIB A   7                 N   ALA A   8     1555   1555  1.34  
+LINK         C   ASP A  16                 N   DAL A  17     1555   1555  1.34  
+LINK         C   DAL A  17                 N   GLY A  18     1555   1555  1.34  
+SITE     1 AC1  7 TRP A  13  LEU A  14  ALA A  15  ASP A  16                    
+SITE     2 AC1  7 GLY A  18  TRP A  19  ALA A  20                               
+CRYST1    1.000    1.000    1.000  90.00  90.00  90.00 P 1           1          
+ORIGX1      1.000000  0.000000  0.000000        0.00000                         
+ORIGX2      0.000000  1.000000  0.000000        0.00000                         
+ORIGX3      0.000000  0.000000  1.000000        0.00000                         
+SCALE1      1.000000  0.000000  0.000000        0.00000                         
+SCALE2      0.000000  1.000000  0.000000        0.00000                         
+SCALE3      0.000000  0.000000  1.000000        0.00000                         
+MODEL        1                                                                  
+ATOM      1  N   ARG A   1      32.101   7.534   2.158  1.00  0.00           N  
+ATOM      2  CA  ARG A   1      26.651   7.196   7.171  1.00  0.00           C  
+ATOM    290  CA  SER A  21      36.881   0.655   0.616  1.00  0.00           C  
+ATOM    291  C   SER A  21      37.035   6.095   0.127  1.00  0.00           C  
+ATOM    292  O   SER A  21      37.773   6.306  -0.858  1.00  0.00           O  
+ATOM    293  CB  SER A  21      35.465   4.142   0.319  1.00  0.00           C  
+ATOM    294  OG  SER A  21      35.109   4.365  -1.034  1.00  0.00           O  
+ATOM    295  OXT SER A  21      36.418   6.999   0.733  1.00  0.00           O1-
+ATOM    296  H   SER A  21      36.455   4.762   2.685  1.00  0.00           H  
+ATOM    297  HA  SER A  21      37.593   4.035   0.093  1.00  0.00           H  
+ATOM    298  HB2 SER A  21      35.430   3.074   0.530  1.00  0.00           H  
+ATOM    299  HB3 SER A  21      34.762   4.662   0.968  1.00  0.00           H  
+ATOM    300  HG  SER A  21      34.362   3.809  -1.264  1.00  0.00           H  
+TER     301      SER A  21                                                      
+ENDMDL                                                                          
+CONECT   82   92                                                                
+CONECT   92   82   93   98                                                      
+CONECT   93   92   94   96   97                                                 
+CONECT   94   93   95  105                                                      
+CONECT   95   94                                                                
+CONECT   96   93   99  100  101                                                 
+CONECT   97   93  102  103  104                                                 
+CONECT   98   92                                                                
+CONECT   99   96                                                                
+CONECT  100   96                                                                
+CONECT  101   96                                                                
+CONECT  102   97                                                                
+CONECT  103   97                                                                
+CONECT  104   97                                                                
+CONECT  105   94                                                                
+CONECT  228  238                                                                
+CONECT  238  228  239  243                                                      
+CONECT  239  238  240  241  244                                                 
+CONECT  240  239  245  246  247                                                 
+CONECT  241  239  242  248                                                      
+CONECT  242  241                                                                
+CONECT  243  238                                                                
+CONECT  244  239                                                                
+CONECT  245  240                                                                
+CONECT  246  240                                                                
+CONECT  247  240                                                                
+CONECT  248  241                                                                
+MASTER      137    0    2    1    0    0    2    6  158    1   27    2          
+END                                                                             

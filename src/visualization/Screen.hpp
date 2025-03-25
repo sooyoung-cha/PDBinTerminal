@@ -14,7 +14,8 @@ public:
     bool handle_input();
     void drawScreen();
     void initialize_colors();
-    void drawLine(std::vector<char>& buffer, int x1, int y1, int x2, int y2, int width, float z1, float z2);
+    void drawLine(std::vector<char>& buffer, std::vector<float>& depth_buffer, int x1, int y1, int x2, int y2, int width, float z1, float z2);
+    char getPixelCharFromDepth(float z);
 
 private:
     int screen_width;
