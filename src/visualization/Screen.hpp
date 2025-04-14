@@ -5,31 +5,70 @@
 #include <cmath>
 #include <iostream>
 
+struct RenderPoint {
+    int x, y;
+    float z;
+    char pixel;
+    char chainID;
+    int color_id = 0;  
+};
+
+struct ScreenPixel {
+    float depth = std::numeric_limits<float>::max();  // z-buffer용
+    char pixel = '_';      // 표시할 문자
+    int color_id = 0;      // ncurses color pair index
+};
+
 class Screen {
 public:
-    Screen(const int& width, const int& height, const bool& show_structure);
+    Screen(const int& width, const int& height, const bool& show_structure, const std::string& mode);
     ~Screen();
     void set_protein(Protein* protein);
     void set_zoom_level(float zoom);
     bool handle_input();
     void drawScreen();
-    void initialize_colors();
-    void drawLine(std::vector<char>& buffer, std::vector<float>& depth_buffer, int x1, int y1, int x2, int y2, int width, float z1, float z2);
+    void assign_colors_to_points(std::vector<RenderPoint>& points);
+    void drawLine(std::vector<RenderPoint>& points,
+                  int x1, int y1, int x2, int y2,
+                  float z1, float z2, char chainID);
     char getPixelCharFromDepth(float z);
 
 private:
     int screen_width;
     int screen_height;
     bool screen_show_structure;
+    std::string screen_mode;
     float aspect_ratio;
     float zoom_level;
-    char* mScreen;
-    std::unordered_map<char, std::vector<char>> screen_buffer_by_chain;  // ✅ 체인별 화면 버퍼
+    std::vector<ScreenPixel> screen_pixels;  // ✅ 이 줄 추가!
     Protein* data;
 
-    std::map<char, int> chain_colors;
+    std::unordered_map<char, int> chain_colors;
 
     void project();
     void clear_screen();
     void print_screen();
+
+    std::vector<int> rainbow_ids = {
+        196, // Red
+        202, // Orange
+        208, // Dark Orange
+        214, // Light Orange
+        220, // Gold
+        226, // Yellow
+        190, // Light Yellow-Green
+        154, // Chartreuse
+        118, // Lime
+        82,  // Green
+        46,  // Spring Green
+        49,  // Aqua Green
+        51,  // Cyan
+        45,  // Sky Blue
+        39,  // Dodger Blue
+        33,  // Blue
+        27,  // Dark Blue
+        21,  // Navy
+        93,  // Violet
+        129  // Magenta
+    };
 };

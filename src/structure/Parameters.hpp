@@ -1,6 +1,9 @@
 #pragma once
 #include <iostream>
 #include <cstring>
+#include <algorithm>
+#include <cctype>
+
 
 using namespace std;
 
@@ -9,7 +12,7 @@ class Parameters{
         string in_file = "./test.pdb";
         string format = "pdb";
         string chains = "";
-        int model = 1;
+        string mode = "default";
         int width = 1;
         int height = 1;
         bool show_structure = false;
@@ -37,6 +40,9 @@ class Parameters{
         }
         int get_height(){
             return height;
+        }
+        std::string get_mode(){
+            return mode;
         }
         bool get_show_structure(){
             return show_structure;

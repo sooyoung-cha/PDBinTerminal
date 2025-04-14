@@ -35,22 +35,18 @@ Parameters::Parameters(int argc, char* argv[]) {
 
     for (int i = 2; i < argc; i++) {
         try {
-            if (!strcmp(argv[i], "-f") || !strcmp(argv[i], "--format")) {
-                if (i + 1 < argc && (!strcmp(argv[i+1], "pdb") || !strcmp(argv[i+1], "mmcif") ||
-                                     !strcmp(argv[i+1], "mmtf") || !strcmp(argv[i+1], "mae") || 
-                                     !strcmp(argv[i+1], "maegz"))) {
-                    format = argv[i+1];
-                    i++;
+            if (!strcmp(argv[i], "-m") || !strcmp(argv[i], "--mode")) {  // ✅ mode 옵션 추가
+                if (i + 1 < argc) {
+                    std::string val(argv[i + 1]);
+                    std::transform(val.begin(), val.end(), val.begin(), ::tolower); // 소문자로 변환
+                    if (val == "chain" || val == "rainbow" || val == "default") {
+                        mode = val;
+                        i++;
+                    } else {
+                        throw std::runtime_error("Invalid value for --mode. Use 'chain' or 'rainbow'.");
+                    }
                 } else {
-                    throw std::runtime_error("Invalid format type.");
-                }
-            }
-            else if (!strcmp(argv[i], "-m") || !strcmp(argv[i], "--model")) {
-                if (i + 1 < argc && isdigit(argv[i+1][0])) {  // ⬅ atoi() 실행 전 확인 (문제 2 해결)
-                    model = atoi(argv[i+1]);
-                    i++;
-                } else {
-                    throw std::runtime_error("Invalid or missing argument for -m / --model.");
+                    throw std::runtime_error("Missing value for -m / --mode.");
                 }
             }
             else if (!strcmp(argv[i], "-c") || !strcmp(argv[i], "--chains")) {
@@ -110,7 +106,7 @@ void Parameters::print_args() {
     cout << "Input parameters >> " << endl;
     cout << "  in_file: " << in_file << endl;
     cout << "  format: " << format << endl;
-    cout << "  model: " << model << endl;
+    cout << "  mode: " << mode << endl;
     cout << "  chains: " << chains << endl;
     cout << "  width: " << width << endl;
     cout << "  height: " << height << endl;

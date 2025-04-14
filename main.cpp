@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
     cbreak();  // 특수 키 입력을 받도록 설정
     noecho();  // 입력한 문자를 화면에 표시하지 않음
     
-    Screen screen(params.get_width(), params.get_height(), params.get_show_structure()); 
+    Screen screen(params.get_width(), params.get_height(), params.get_show_structure(), params.get_mode()); 
     screen.set_protein(&protein);
 
 

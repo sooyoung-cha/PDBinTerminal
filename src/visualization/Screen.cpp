@@ -6,63 +6,35 @@
 const float FOV = 90.0;
 const float PI = 3.14159265359;
 
-Screen::Screen(const int& width, const int& height, const bool& show_structure) {
+Screen::Screen(const int& width, const int& height, const bool& show_structure, const std::string& mode) {
     screen_width = width;
     screen_height = height;
     screen_show_structure = show_structure;
+    screen_mode = mode;
     aspect_ratio = (float)screen_width / screen_height;
-    mScreen = new char[screen_height * screen_width];
     zoom_level = 3;
-    clear_screen();
-
 }
 
 Screen::~Screen() {
-    delete[] mScreen;
 }
 
 void Screen::set_protein(Protein* protein) {
     data = protein;
-    initialize_colors();
 }
 
-void Screen::set_zoom_level(float zoom){
-    if ((zoom_level + zoom > 0.5)&&(zoom_level + zoom < 10)){
-        zoom_level += zoom;
-    }
+char Screen::getPixelCharFromDepth(float z) {
+    if (z < 9.30) return '#';
+    else if (z < 9.50) return '@';
+    else if (z < 9.70) return '%';
+    else if (z < 9.90) return '*';
+    else if (z < 10.10) return '^';
+    else if (z < 10.30) return '.';
+    else return '_';
 }
 
-
-void Screen::initialize_colors() {
-    initscr();
-    if (!has_colors() || !can_change_color()) {
-        endwin();
-        std::cerr << "Terminal does not support colors!" << std::endl;
-        return;
-    }
-
-    start_color();
-    use_default_colors();
-
-    int available_colors[] = {COLOR_GREEN, COLOR_YELLOW, COLOR_BLUE, COLOR_MAGENTA, COLOR_CYAN, COLOR_WHITE};
-
-    int color_index = 1;
-    for (const auto& [chainID, _] : data->get_on_screen_atoms()) { 
-        if (chain_colors.find(chainID) == chain_colors.end()) {  
-            int assigned_color = available_colors[(color_index - 1) % 6];  
-            init_pair(color_index, assigned_color, COLOR_BLACK);
-            chain_colors[chainID] = color_index;
-            color_index++;
-        }
-    }
-}
-
-void Screen::drawLine(std::vector<char>& buffer, 
-                      std::vector<float>& depth_buffer,                    
-                      int x1, int y1, 
-                      int x2, int y2,
-                      int width, 
-                      float z1, float z2) {
+void Screen::drawLine(std::vector<RenderPoint>& points,
+                      int x1, int y1, int x2, int y2,
+                      float z1, float z2, char chainID) {
     int dx = x2 - x1;
     int dy = y2 - y1;
     int steps = std::max(abs(dx), abs(dy));
@@ -79,13 +51,9 @@ void Screen::drawLine(std::vector<char>& buffer,
     for (int i = 0; i <= steps; ++i) {
         int ix = static_cast<int>(x);
         int iy = static_cast<int>(y);
-        int index = iy * width + ix;
 
-        if (ix >= 0 && ix < width && iy >= 0 && index < buffer.size()) {
-            if (z < depth_buffer[index]) {
-                depth_buffer[index] = z;
-                buffer[index] = getPixelCharFromDepth(z);
-            }
+        if (ix >= 0 && ix < screen_width && iy >= 0 && iy < screen_height) {
+            points.push_back({ix, iy, z, getPixelCharFromDepth(z), chainID});
         }
 
         x += xIncrement;
@@ -94,170 +62,173 @@ void Screen::drawLine(std::vector<char>& buffer,
     }
 }
 
+void Screen::assign_colors_to_points(std::vector<RenderPoint>& points) {
+    initscr();
+    if (!has_colors() || !can_change_color()) {
+        endwin();
+        std::cerr << "Terminal does not support colors!" << std::endl;
+        return;
+    }
 
+    start_color();
+    use_default_colors();
 
+    // rainbow 팔레트 (순서 중요)
+    int rainbow[] = {
+        COLOR_RED, COLOR_YELLOW, COLOR_GREEN, COLOR_CYAN, COLOR_BLUE, COLOR_MAGENTA
+    };
+    int rainbow_size = sizeof(rainbow) / sizeof(int);
 
-char Screen::getPixelCharFromDepth(float z) {
-    // if (z < 9.75) return '#';
-    // else if (z < 9.85) return '@';
-    // else if (z < 9.95) return '%';
-    // else if (z < 10.05) return '*';
-    // else if (z < 10.25) return '^';
-    // else if (z < 10.35) return '.';
-    // else return '_';
+    if (screen_mode == "default") {
+        init_pair(1, COLOR_GREEN, -1);
+        for (auto& pt : points) {
+            pt.color_id = 1;
+        }
+    }
 
-    if (z < 9.30) return '#';
-    else if (z < 9.50) return '@';
-    else if (z < 9.70) return '%';
-    else if (z < 9.90) return '*';
-    else if (z < 10.10) return '^';
-    else if (z < 10.30) return '.';
-    else return '_';
+    else if (screen_mode == "chain") {
+        std::unordered_map<char, int> local_chain_colors;
+        int color_index = 1;
+        int available_colors[] = {
+            COLOR_GREEN, COLOR_YELLOW, COLOR_BLUE, COLOR_MAGENTA, COLOR_CYAN, COLOR_WHITE
+        };
+        int num_colors = sizeof(available_colors) / sizeof(int);
+
+        for (auto& pt : points) {
+            char cID = pt.chainID;
+            if (local_chain_colors.find(cID) == local_chain_colors.end()) {
+                int col = available_colors[(color_index - 1) % num_colors];
+                init_pair(color_index, col, -1);
+                local_chain_colors[cID] = color_index++;
+            }
+            pt.color_id = local_chain_colors[cID];
+        }
+
+        chain_colors = std::move(local_chain_colors);  // 저장
+    }
+
+    else if (screen_mode == "rainbow") {
+        int total = points.size();
+
+        // PDB 스타일 rainbow 색상 ID 목록 (N → C 방향)
+        int num_colors = rainbow_ids.size();
+
+        // COLOR_PAIR 등록
+        for (int i = 0; i < num_colors; ++i) {
+            init_pair(i + 1, rainbow_ids[i], -1);
+        }
+
+        // 포인트에 색상 지정 (등간격으로 할당)
+        for (int i = 0; i < total; ++i) {
+            int color_index = (i * num_colors) / total;
+            color_index = std::min(color_index, num_colors - 1);
+            points[i].color_id = color_index + 1;
+        }
+    }
+
+    else {
+        std::cerr << "Unknown mode: " << screen_mode << std::endl;
+    }
 }
-
 
 void Screen::project() {
     float adjustedFOV = FOV / zoom_level;
     float fovRad = 1.0 / tan(adjustedFOV * 0.5 / 180.0 * PI);
-    float focal_offset = 10.0f; // 소실점 오프셋
+    float focal_offset = 10.0f;
 
-    screen_buffer_by_chain.clear();
-    std::unordered_map<char, std::vector<char>> chain_screen;
-    std::unordered_map<char, std::vector<float>> depth_buffer_by_chain; // 체인별 depth_buffer 추가
+    std::vector<RenderPoint> final_points;
 
-    // 체인별 버퍼 초기화
-    for (const auto& [chainID, chain_atoms] : data->get_on_screen_atoms()) {  
+    for (const auto& [chainID, chain_atoms] : data->get_on_screen_atoms()) {
         if (!chain_atoms) continue;
-        int num_atoms = data->get_num_chain_Atoms(chainID); 
 
-        chain_screen[chainID] = std::vector<char>(screen_width * screen_height, ' ');
-        depth_buffer_by_chain[chainID] = std::vector<float>(screen_width * screen_height, std::numeric_limits<float>::max());
-    }
-
-    //  체인별로 개별 depth_buffer 사용하여 Z값 반영
-    for (const auto& [chainID, chain_atoms] : data->get_on_screen_atoms()) {  
-        if (!chain_atoms) continue;
-        int num_atoms = data->get_num_chain_Atoms(chainID); 
+        int num_atoms = data->get_num_chain_Atoms(chainID);
+        std::vector<RenderPoint> chain_points;
 
         int prevScreenX = -1, prevScreenY = -1;
         float prevZ = -1.0f;
-        for (int i = 0; i < num_atoms; ++i) {  
+
+        for (int i = 0; i < num_atoms; ++i) {
             float* position = chain_atoms[i].get_position();
             float x = position[0];
             float y = position[1];
             float z = position[2] + focal_offset;
 
-            //float projectedX = (x / z) * fovRad * aspect_ratio;
             float projectedX = (x / z) * fovRad;
             float projectedY = (y / z) * fovRad;
             int screenX = (int)((projectedX + 1.0) * 0.5 * screen_width);
             int screenY = (int)((1.0 - projectedY) * 0.5 * screen_height);
 
-            bool isInsideScreen = (screenX >= 0 && screenX < screen_width && screenY >= 0 && screenY < screen_height);
+            if (prevScreenX != -1 && prevScreenY != -1) {
+                drawLine(chain_points, prevScreenX, prevScreenY, screenX, screenY, prevZ, z, chainID);
+            }
+            
+            if (screenX >= 0 && screenX < screen_width && screenY >= 0 && screenY < screen_height) {
+                chain_points.push_back({screenX, screenY, z, getPixelCharFromDepth(z), chainID});
+            }
 
-            if (isInsideScreen) {
-                int index = screenY * screen_width + screenX;
-                if (z < depth_buffer_by_chain[chainID][index]) {  
-                    depth_buffer_by_chain[chainID][index] = z; 
-                    float depth_z = (z + focal_offset) / zoom_level;
-                    chain_screen[chainID][index] = getPixelCharFromDepth(z);
-                }
-            }
-            if (prevScreenX != -1 && prevScreenY != -1){
-                drawLine(chain_screen[chainID], depth_buffer_by_chain[chainID], prevScreenX, prevScreenY, screenX, screenY, screen_width, prevZ, z);
-            }
 
             prevScreenX = screenX;
             prevScreenY = screenY;
             prevZ = z;
         }
+
+        final_points.insert(final_points.end(), chain_points.begin(), chain_points.end());
     }
 
-    //  체인별 정보를 합칠 때 depth 비교하여 덮어쓰지 않도록 처리
-    std::vector<float> final_depth_buffer(screen_width * screen_height, std::numeric_limits<float>::max());
-    std::vector<char> final_screen(screen_width * screen_height, '_');
+    assign_colors_to_points(final_points); 
 
-    for (const auto& [chainID, buffer] : chain_screen) {
-        const auto& depth_buffer = depth_buffer_by_chain[chainID];
-        for (int i = 0; i < screen_width * screen_height; ++i) {
-            if (buffer[i] != ' ') {  
-                if (depth_buffer[i] < final_depth_buffer[i]) {  //  최종 깊이 비교
-                    final_depth_buffer[i] = depth_buffer[i];
-                    mScreen[i] = buffer[i];
-                }
-            }
+    screen_pixels.assign(screen_width * screen_height, ScreenPixel());  // 초기화
+
+    for (const auto& pt : final_points) {
+        int idx = pt.y * screen_width + pt.x;
+        if (pt.z < screen_pixels[idx].depth) {
+            screen_pixels[idx].depth = pt.z;
+            screen_pixels[idx].pixel = pt.pixel;
+            screen_pixels[idx].color_id = pt.color_id;
         }
     }
-    
-    screen_buffer_by_chain = chain_screen;
+
 }
 
-
-void Screen::clear_screen() {
-    clear(); 
-    std::fill(mScreen, mScreen + screen_height * screen_width, '_');
-}
 
 void Screen::print_screen() {
-    // 더블 버퍼링을 위한 메모리 버퍼
-    std::vector<std::vector<char>> buffer(screen_height, std::vector<char>(screen_width, ' '));
+    clear();  // ncurses 화면 초기화
 
-    //  메모리 버퍼에 먼저 그리기
-    for (int i = 0; i < screen_height; i++) {
-        for (int j = 0; j < screen_width; j++) {
-            char point = mScreen[i * screen_width + j];
+    for (int i = 0; i < screen_height; ++i) {
+        for (int j = 0; j < screen_width; ++j) {
+            int idx = i * screen_width + j;
+            const ScreenPixel& px = screen_pixels[idx];
 
-            // 현재 좌표에 있는 체인을 찾음
-            char chainID = ' ';
-            for (const auto& [cID, buffer] : screen_buffer_by_chain) {
-                if (buffer[i * screen_width + j] == point) {
-                    chainID = cID;
-                    break;
-                }
-            }
-
-            // 체인 색상 적용
-            if (chain_colors.find(chainID) != chain_colors.end()) {
-                int color_id = chain_colors[chainID];  
-                buffer[i][j] = point;  // 메모리 버퍼에 저장
+            if (px.color_id > 0) {
+                attron(COLOR_PAIR(px.color_id));
+                mvaddch(i, j, px.pixel);
+                attroff(COLOR_PAIR(px.color_id));
             } else {
-                buffer[i][j] = point;
+                mvaddch(i, j, px.pixel);
             }
         }
     }
 
-    clear_screen();  // 기존 `mScreen` 초기화
-    //  한번에 화면 출력
-    for (int i = 0; i < screen_height; i++) {
-        for (int j = 0; j < screen_width; j++) {
-            char point = buffer[i][j];
-
-            char chainID = ' ';
-            for (const auto& [cID, buf] : screen_buffer_by_chain) {
-                if (buf[i * screen_width + j] == point) {
-                    chainID = cID;
-                    break;
-                }
-            }
-
-            if (chain_colors.find(chainID) != chain_colors.end()) {
-                int color_id = chain_colors[chainID];
-                attron(COLOR_PAIR(color_id));
-                mvaddch(i, j, point);
-                attroff(COLOR_PAIR(color_id));
-            } else {
-                mvaddch(i, j, point);
-            }
-        }
-    }
-
-    refresh();
+    refresh();  // 출력 적용
 }
+
 
 
 void Screen::drawScreen() {
+    clear_screen();
     project();
     print_screen();
+}
+
+void Screen::clear_screen() {
+    clear(); 
+    screen_pixels.assign(screen_width * screen_height, ScreenPixel());
+}
+
+void Screen::set_zoom_level(float zoom){
+    if ((zoom_level + zoom > 0.5)&&(zoom_level + zoom < 10)){
+        zoom_level += zoom;
+    }
 }
 
 bool Screen::handle_input(){
