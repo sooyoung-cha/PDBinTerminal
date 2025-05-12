@@ -5,7 +5,7 @@ struct Atom {
     float mX;
     float mY;
     float mZ;
-    char mStructure;        // 'x' : default, 'h' : helix, 's' : sheet
+    char mStructure='x';        // 'x' : default, 'h' : helix, 's' : sheet
 
     Atom(float x, float y, float z) : mX(x), mY(y), mZ(z), mStructure{'*'} {}
     Atom(float x, float y, float z, char c) : mX(x), mY(y), mZ(z), mStructure{c} {}

@@ -10,6 +10,7 @@ struct RenderPoint {
     float z;
     char pixel;
     char chainID;
+    char structure = 'x';
     int color_id = 0;  
 };
 
@@ -30,7 +31,9 @@ public:
     void assign_colors_to_points(std::vector<RenderPoint>& points);
     void drawLine(std::vector<RenderPoint>& points,
                   int x1, int y1, int x2, int y2,
-                  float z1, float z2, char chainID);
+                  float z1, float z2, char chainID, char structure);
+    void drawAlphHelix(std::vector<RenderPoint>& points);
+    void drawBetaSheet(std::vector<RenderPoint>& points);
     char getPixelCharFromDepth(float z);
 
 private:
@@ -40,7 +43,7 @@ private:
     std::string screen_mode;
     float aspect_ratio;
     float zoom_level;
-    std::vector<ScreenPixel> screen_pixels;  // ✅ 이 줄 추가!
+    std::vector<ScreenPixel> screenPixels;  
     Protein* data;
 
     std::unordered_map<char, int> chain_colors;
