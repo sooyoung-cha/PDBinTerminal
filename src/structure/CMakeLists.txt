@@ -9,6 +9,8 @@ set(structure_source_files
     Parameters.hpp
     Protein.cpp
     Protein.hpp
+    StructureMaker.cpp
+    StructureMaker.hpp
 )
 
 add_library(structure ${structure_source_files})

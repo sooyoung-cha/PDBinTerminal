@@ -1,10 +1,9 @@
 #include "Screen.hpp"
-#include <ncurses.h>
 
 #define NUM_PROTEIN 1
 
 const float FOV = 90.0;
-const float PI = 3.14159265359;
+const float PI = 3.14159265359f;
 
 Screen::Screen(const int& width, const int& height, const bool& show_structure, const std::string& mode) {
     screen_width = width;
@@ -30,107 +29,6 @@ char Screen::getPixelCharFromDepth(float z) {
     else if (z < 10.10) return '^';
     else if (z < 10.30) return '.';
     else return '_';
-}
-
-void Screen::drawAlphHelix(std::vector<RenderPoint>& points) {
-    const int radius = 2;
-    const int circle_steps = 8;
-    std::vector<RenderPoint> extra_points;
-
-    for (size_t i = 1; i < points.size(); ++i) {
-        const auto& p1 = points[i - 1];
-        const auto& p2 = points[i];
-
-        if (p1.structure == 'H' && p2.structure == 'H') {
-            float dx = static_cast<float>(p2.x - p1.x);
-            float dy = static_cast<float>(p2.y - p1.y);
-            float dz = static_cast<float>(p2.z - p1.z);
-            float len = std::sqrt(dx * dx + dy * dy + dz * dz);
-            if (len == 0) continue;
-
-            float nx = -dy / len;
-            float ny = dx / len;
-
-            float cx = (p1.x + p2.x) / 2.0f;
-            float cy = (p1.y + p2.y) / 2.0f;
-            float cz = (p1.z + p2.z) / 2.0f;
-
-            for (int t = 0; t < circle_steps; ++t) {
-                float theta = 2 * PI * t / circle_steps;
-                float px = cx + radius * std::cos(theta) * nx;
-                float py = cy + radius * std::sin(theta) * ny;
-                float pz = cz;  // 고정 or cz + ... 가능
-
-                int ix = static_cast<int>(px);
-                int iy = static_cast<int>(py);
-
-                if (ix >= 0 && ix < screen_width && iy >= 0 && iy < screen_height) {
-                    RenderPoint pt;
-                    pt.x = ix;
-                    pt.y = iy;
-                    pt.z = pz;
-                    pt.pixel = getPixelCharFromDepth(pz);
-                    pt.chainID = p1.chainID;
-                    pt.structure = p1.structure;
-                    pt.color_id = p1.color_id;
-
-                    extra_points.push_back(pt);
-                }
-            }
-        }
-    }
-
-    points.insert(points.end(), extra_points.begin(), extra_points.end());
-}
-
-void Screen::drawBetaSheet(std::vector<RenderPoint>& points) {
-    const int width = 2;  // 총 두께 (2*width + 1)
-    std::vector<RenderPoint> extra_points;
-
-    for (size_t i = 1; i < points.size(); ++i) {
-        const auto& p1 = points[i - 1];
-        const auto& p2 = points[i];
-
-        if (p1.structure == 'S' && p2.structure == 'S') {
-            float dx = static_cast<float>(p2.x - p1.x);
-            float dy = static_cast<float>(p2.y - p1.y);
-            float dz = static_cast<float>(p2.z - p1.z);
-            float len = std::sqrt(dx * dx + dy * dy + dz * dz);
-            if (len == 0) continue;
-
-            // 방향 벡터 정규화
-            float vx = dx / len;
-            float vy = dy / len;
-
-            float cx = (p1.x + p2.x) / 2.0f;
-            float cy = (p1.y + p2.y) / 2.0f;
-            float cz = (p1.z + p2.z) / 2.0f;
-
-            for (int step = -width; step <= width; ++step) {
-                float px = cx + step * vx;
-                float py = cy + step * vy;
-                float pz = cz;
-
-                int ix = static_cast<int>(px);
-                int iy = static_cast<int>(py);
-
-                if (ix >= 0 && ix < screen_width && iy >= 0 && iy < screen_height) {
-                    RenderPoint pt;
-                    pt.x = ix;
-                    pt.y = iy;
-                    pt.z = pz;
-                    pt.pixel = getPixelCharFromDepth(pz); 
-                    pt.chainID = p1.chainID;
-                    pt.structure = p1.structure;
-                    pt.color_id = p1.color_id;
-
-                    extra_points.push_back(pt);
-                }
-            }
-        }
-    }
-
-    points.insert(points.end(), extra_points.begin(), extra_points.end());
 }
 
 void Screen::drawLine(std::vector<RenderPoint>& points,
@@ -240,10 +138,10 @@ void Screen::project() {
     std::vector<RenderPoint> finalPoints;
 
     // project dots and connect them into line
-    for (const auto& [chainID, chain_atoms] : data->get_on_screen_atoms()) {
-        if (!chain_atoms) continue;
+    for (const auto& [chainID, chain_atoms] : data->get_atoms()) {
+        if (chain_atoms.size() == 0) continue;
 
-        int num_atoms = data->get_num_chain_Atoms(chainID);
+        int num_atoms = data->get_chain_length(chainID);
         std::vector<RenderPoint> chainPoints;
 
         int prevScreenX = -1, prevScreenY = -1;
@@ -280,9 +178,6 @@ void Screen::project() {
 
     assign_colors_to_points(finalPoints); 
 
-    drawAlphHelix(finalPoints);
-    drawBetaSheet(finalPoints);
-
     for (const auto& pt : finalPoints) {
         int idx = pt.y * screen_width + pt.x;
         if (pt.z < screenPixels[idx].depth) {
@@ -314,8 +209,6 @@ void Screen::print_screen() {
 
     refresh();  // 출력 적용
 }
-
-
 
 void Screen::drawScreen() {
     clear_screen();

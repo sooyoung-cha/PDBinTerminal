@@ -4,6 +4,8 @@
 #include <vector>
 #include <cmath>
 #include <iostream>
+#include <unordered_map>
+#include <ncurses.h>
 
 struct RenderPoint {
     int x, y;
