@@ -115,7 +115,7 @@ void StructureMaker::calculate_ss_points(std::map<char, std::vector<Atom>>& init
                     float dz = segment.back().mZ - segment.front().mZ;
                     float length = std::sqrt(dx * dx + dy * dy + dz * dz);
 
-                    const float radius = 0.12f;
+                    const float radius = 0.10f;
                     const int steps = std::min<int>(8, (end - start));     
                     const int circle_steps = 8; 
 
