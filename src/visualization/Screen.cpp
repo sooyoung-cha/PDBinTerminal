@@ -17,8 +17,12 @@ Screen::Screen(const int& width, const int& height, const bool& show_structure, 
 Screen::~Screen() {
 }
 
-void Screen::set_protein(Protein* protein) {
-    data = protein;
+void Screen::set_protein1(Protein* protein) {
+    data1 = protein;
+}
+
+void Screen::set_protein2(Protein* protein) {
+    data2 = protein;
 }
 
 char Screen::getPixelCharFromDepth(float z) {
@@ -135,14 +139,15 @@ void Screen::project() {
     float fovRad = 1.0 / tan(adjustedFOV * 0.5 / 180.0 * PI);
     float focal_offset = 10.0f;
 
-    std::vector<RenderPoint> finalPoints;
+    std::vector<RenderPoint> finalPoints1;
+    std::vector<RenderPoint> finalPoints2;
 
     // project dots and connect them into line
-    for (const auto& [chainID, chain_atoms] : data->get_atoms()) {
+    for (const auto& [chainID, chain_atoms] : data1->get_atoms()) {
         if (chain_atoms.size() == 0) continue;
 
-        int num_atoms = data->get_chain_length(chainID);
-        std::vector<RenderPoint> chainPoints;
+        int num_atoms = data1->get_chain_length(chainID);
+        std::vector<RenderPoint> chainPoints1;
 
         int prevScreenX = -1, prevScreenY = -1;
         float prevZ = -1.0f;
@@ -160,11 +165,47 @@ void Screen::project() {
             int screenY = (int)((1.0 - projectedY) * 0.5 * screen_height);
 
             if (prevScreenX != -1 && prevScreenY != -1) {
-                drawLine(chainPoints, prevScreenX, prevScreenY, screenX, screenY, prevZ, z, chainID, structure);
+                drawLine(chainPoints1, prevScreenX, prevScreenY, screenX, screenY, prevZ, z, chainID, structure);
             }
             
             if (screenX >= 0 && screenX < screen_width && screenY >= 0 && screenY < screen_height) {
-                chainPoints.push_back({screenX, screenY, z, getPixelCharFromDepth(z), chainID, structure});
+                chainPoints1.push_back({screenX, screenY, z, getPixelCharFromDepth(z), chainID, structure});
+            }
+
+            prevScreenX = screenX;
+            prevScreenY = screenY;
+            prevZ = z;
+        }
+
+        finalPoints1.insert(finalPoints1.end(), chainPoints1.begin(), chainPoints1.end());
+    }
+    for (const auto& [chainID, chain_atoms] : data2->get_atoms()) {
+        if (chain_atoms.size() == 0) continue;
+
+        int num_atoms = data2->get_chain_length(chainID);
+        std::vector<RenderPoint> chainPoints2;
+
+        int prevScreenX = -1, prevScreenY = -1;
+        float prevZ = -1.0f;
+
+        for (int i = 0; i < num_atoms; ++i) {
+            float* position = chain_atoms[i].get_position();
+            float x = position[0];
+            float y = position[1];
+            float z = position[2] + focal_offset;
+            char structure = chain_atoms[i].get_structure();
+
+            float projectedX = (x / z) * fovRad;
+            float projectedY = (y / z) * fovRad;
+            int screenX = (int)((projectedX + 1.0) * 0.5 * screen_width);
+            int screenY = (int)((1.0 - projectedY) * 0.5 * screen_height);
+
+            if (prevScreenX != -1 && prevScreenY != -1) {
+                drawLine(chainPoints2, prevScreenX, prevScreenY, screenX, screenY, prevZ, z, chainID, structure);
+            }
+            
+            if (screenX >= 0 && screenX < screen_width && screenY >= 0 && screenY < screen_height) {
+                chainPoints2.push_back({screenX, screenY, z, getPixelCharFromDepth(z), chainID, structure});
             }
 
 
@@ -173,12 +214,21 @@ void Screen::project() {
             prevZ = z;
         }
 
-        finalPoints.insert(finalPoints.end(), chainPoints.begin(), chainPoints.end());
+        finalPoints2.insert(finalPoints2.end(), chainPoints2.begin(), chainPoints2.end());
     }
 
-    assign_colors_to_points(finalPoints); 
+    assign_colors_to_points(finalPoints1); 
+    assign_colors_to_points(finalPoints2); 
 
-    for (const auto& pt : finalPoints) {
+    for (const auto& pt : finalPoints1) {
+        int idx = pt.y * screen_width + pt.x;
+        if (pt.z < screenPixels[idx].depth) {
+            screenPixels[idx].depth = pt.z;
+            screenPixels[idx].pixel = pt.pixel;
+            screenPixels[idx].color_id = pt.color_id;
+        }
+    }
+    for (const auto& pt : finalPoints2) {
         int idx = pt.y * screen_width + pt.x;
         if (pt.z < screenPixels[idx].depth) {
             screenPixels[idx].depth = pt.z;
@@ -233,38 +283,45 @@ bool Screen::handle_input(){
         // W, w (y 축 양의 이동)
         case 119:
         case 87:
-            data->set_shift(0, 0.1, 0);
+            data1->set_shift(0, 0.1, 0);
+            data2->set_shift(0, 0.1, 0);
             break;
         // A, a (x 축 음의 이동)
         case 97:
         case 65:
-            data->set_shift(-0.1, 0, 0);
+            data1->set_shift(-0.1, 0, 0);
+            data2->set_shift(-0.1, 0, 0);
             break;
         // S, s (y 축 음의 이동)
         case 115:
         case 83:
-            data->set_shift(0, -0.1, 0);
+            data1->set_shift(0, -0.1, 0);
+            data2->set_shift(0, -0.1, 0);
             break;      
         // D, d (x 축 양의 이동)
         case 100:
         case 68:
-            data->set_shift(0.1, 0, 0);
+            data1->set_shift(0.1, 0, 0);
+            data2->set_shift(0.1, 0, 0);
             break;
 
         // X, x (x 축 중심 회전)
         case 120:
         case 88:
-            data->set_rotate(1, 0, 0);
+            data1->set_rotate(1, 0, 0);
+            data2->set_rotate(1, 0, 0);
             break;  
         // Y, y (y 축 중심 회전)
         case 121:
         case 89:
-            data->set_rotate(0, 1, 0);
+            data1->set_rotate(0, 1, 0);
+            data2->set_rotate(0, 1, 0);
             break;  
         // Z, z (z 축 중심 회전)
         case 122:
         case 90:
-            data->set_rotate(0, 0, 1);
+            data1->set_rotate(0, 0, 1);
+            data2->set_rotate(0, 0, 1);
             break;  
 
         // R, R (줌 인)

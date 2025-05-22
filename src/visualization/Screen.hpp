@@ -26,7 +26,8 @@ class Screen {
 public:
     Screen(const int& width, const int& height, const bool& show_structure, const std::string& mode);
     ~Screen();
-    void set_protein(Protein* protein);
+    void set_protein1(Protein* protein);
+    void set_protein2(Protein* protein);
     void set_zoom_level(float zoom);
     bool handle_input();
     void drawScreen();
@@ -46,7 +47,8 @@ private:
     float aspect_ratio;
     float zoom_level;
     std::vector<ScreenPixel> screenPixels;  
-    Protein* data;
+    Protein* data1;
+    Protein* data2;
 
     std::unordered_map<char, int> chain_colors;
 
