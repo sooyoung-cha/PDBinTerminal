@@ -42,6 +42,7 @@ public:
 private:
     int screen_width;
     int screen_height;
+    int structNum = 0;
     bool screen_show_structure;
     std::string screen_mode;
     float aspect_ratio;

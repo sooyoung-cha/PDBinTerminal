@@ -280,48 +280,102 @@ void Screen::set_zoom_level(float zoom){
 bool Screen::handle_input(){
     bool keep_show = true;
     switch(getch()){
+        // struct 1
+        case 49:
+            structNum = 1;
+            break;
+        // strcut 2
+        case 50:
+            structNum = 2;
+            break;
+        // both (default)
+        case 48:
+            structNum = 0;
+            break;
         // W, w (y 축 양의 이동)
         case 119:
         case 87:
-            data1->set_shift(0, 0.1, 0);
-            data2->set_shift(0, 0.1, 0);
+            if (structNum == 1) {
+                data1->set_shift(0, 0.1, 0);
+            } else if (structNum == 2) {
+                data2->set_shift(0, 0.1, 0);
+            } else {
+                data1->set_shift(0, 0.1, 0);
+                data2->set_shift(0, 0.1, 0);
+            }
             break;
         // A, a (x 축 음의 이동)
         case 97:
         case 65:
-            data1->set_shift(-0.1, 0, 0);
-            data2->set_shift(-0.1, 0, 0);
+            if (structNum == 1) {
+                data1->set_shift(-0.1, 0, 0);
+            } else if (structNum == 2) {
+                data2->set_shift(-0.1, 0, 0);
+            } else {
+                data1->set_shift(-0.1, 0, 0);
+                data2->set_shift(-0.1, 0, 0);
+            }
             break;
         // S, s (y 축 음의 이동)
         case 115:
         case 83:
-            data1->set_shift(0, -0.1, 0);
-            data2->set_shift(0, -0.1, 0);
+            if (structNum == 1) {
+                data1->set_shift(0, -0.1, 0);
+            } else if (structNum == 2) {
+                data2->set_shift(0, -0.1, 0);
+            } else {
+                data1->set_shift(0, -0.1, 0);
+                data2->set_shift(0, -0.1, 0);
+            }
             break;      
         // D, d (x 축 양의 이동)
         case 100:
         case 68:
+        if (structNum == 1) {
+            data1->set_shift(0.1, 0, 0);
+        } else if (structNum == 2) {
+            data2->set_shift(0.1, 0, 0);
+        } else {
             data1->set_shift(0.1, 0, 0);
             data2->set_shift(0.1, 0, 0);
+        }
             break;
 
         // X, x (x 축 중심 회전)
         case 120:
         case 88:
+        if (structNum == 1) {
+            data1->set_rotate(1, 0, 0);
+        } else if (structNum == 2) {
+            data2->set_rotate(1, 0, 0);
+        } else {
             data1->set_rotate(1, 0, 0);
             data2->set_rotate(1, 0, 0);
+        }
             break;  
         // Y, y (y 축 중심 회전)
         case 121:
         case 89:
+        if (structNum == 1) {
+            data1->set_rotate(0, 1, 0);
+        } else if (structNum == 2) {
+            data2->set_rotate(0, 1, 0);
+        } else {
             data1->set_rotate(0, 1, 0);
             data2->set_rotate(0, 1, 0);
+        }
             break;  
         // Z, z (z 축 중심 회전)
         case 122:
         case 90:
+        if (structNum == 1) {
+            data1->set_rotate(0, 0, 1);
+        } else if (structNum == 2) {
+            data2->set_rotate(0, 0, 1);
+        } else {
             data1->set_rotate(0, 0, 1);
             data2->set_rotate(0, 0, 1);
+        }
             break;  
 
         // R, R (줌 인)
