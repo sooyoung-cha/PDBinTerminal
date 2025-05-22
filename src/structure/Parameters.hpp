@@ -9,19 +9,20 @@ using namespace std;
 
 class Parameters{
     private:
+        bool show_structure = false;
+        bool arg_okay = true;
+        int width = 1;
+        int height = 1;
         string in_file = "./test.pdb";
         string in_file2 = "none";
         string format = "pdb";
         string chains1 = "";
         string chains2 = "";
         string mode = "default";
-        int width = 1;
-        int height = 1;
-        bool show_structure = false;
-        bool arg_okay = true;
 
     public:
         Parameters(int argc, char* argv[]);
+        bool issame = true;
 
         void print_args();
 

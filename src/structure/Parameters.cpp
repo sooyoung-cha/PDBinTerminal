@@ -30,8 +30,9 @@ Parameters::Parameters(int argc, char* argv[]) {
         if (argv[2][0] != '-') {
             in_file2 = argv[2];
             start = 3;
+            issame = false;
         } else {
-            in_file2 = "none";
+            in_file2 = argv[1];
             start = 2;
         }
     } else {

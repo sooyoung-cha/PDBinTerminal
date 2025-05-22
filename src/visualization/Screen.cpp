@@ -5,13 +5,14 @@
 const float FOV = 90.0;
 const float PI = 3.14159265359f;
 
-Screen::Screen(const int& width, const int& height, const bool& show_structure, const std::string& mode) {
+Screen::Screen(const int& width, const int& height, const bool& show_structure, const std::string& mode, bool issame) {
     screen_width = width;
     screen_height = height;
     screen_show_structure = show_structure;
     screen_mode = mode;
     aspect_ratio = (float)screen_width / screen_height;
     zoom_level = 3;
+    isSame = issame;
 }
 
 Screen::~Screen() {
@@ -282,11 +283,15 @@ bool Screen::handle_input(){
     switch(getch()){
         // struct 1
         case 49:
+        if (isSame == false) {
             structNum = 1;
+        }
             break;
         // strcut 2
         case 50:
+        if (isSame == false) {
             structNum = 2;
+        }
             break;
         // both (default)
         case 48:

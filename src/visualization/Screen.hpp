@@ -24,12 +24,14 @@ struct ScreenPixel {
 
 class Screen {
 public:
-    Screen(const int& width, const int& height, const bool& show_structure, const std::string& mode);
+    Screen(const int& width, const int& height, const bool& show_structure, const std::string& mode, bool isSame);
     ~Screen();
+    bool handle_input();
+    bool isSame = true;
+    char getPixelCharFromDepth(float z);
     void set_protein1(Protein* protein);
     void set_protein2(Protein* protein);
     void set_zoom_level(float zoom);
-    bool handle_input();
     void drawScreen();
     void assign_colors_to_points(std::vector<RenderPoint>& points);
     void drawLine(std::vector<RenderPoint>& points,
@@ -37,7 +39,6 @@ public:
                   float z1, float z2, char chainID, char structure);
     void drawAlphHelix(std::vector<RenderPoint>& points);
     void drawBetaSheet(std::vector<RenderPoint>& points);
-    char getPixelCharFromDepth(float z);
 
 private:
     int screen_width;
