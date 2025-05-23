@@ -23,17 +23,25 @@ bool Parameters::is_valid_number(const std::string& str, int min, int max) {
 
 Parameters::Parameters(int argc, char* argv[]) {
     arg_okay = true;
-    chains = "";  // ⬅ 기본값 설정 (문제 1 해결)
-
+    chains1 = "";  // ⬅ 기본값 설정 (문제 1 해결)
+    unsigned int start;
     if (argc > 1) {
         in_file = argv[1];
+        if (argv[2][0] != '-') {
+            in_file2 = argv[2];
+            start = 3;
+            issame = false;
+        } else {
+            in_file2 = argv[1];
+            start = 2;
+        }
     } else {
         std::cerr << "Need input file dir !!!" << std::endl;
         arg_okay = false;
         return;
     }
 
-    for (int i = 2; i < argc; i++) {
+    for (int i = start; i < argc; i++) {
         try {
             if (!strcmp(argv[i], "-m") || !strcmp(argv[i], "--mode")) {  // ✅ mode 옵션 추가
                 if (i + 1 < argc) {
@@ -54,10 +62,10 @@ Parameters::Parameters(int argc, char* argv[]) {
                     if (argv[i+1] == nullptr || strlen(argv[i+1]) == 0) {  // ✅ 비어 있는 값 체크
                         throw std::runtime_error("Error: Chains argument is empty!");
                     }
-                    chains = argv[i+1];  
+                    chains1 = argv[i+1];  
                     i++;
 
-                    std::cout << "DEBUG: Parsed chains = '" << chains << "'" << std::endl; // ✅ 디버깅 출력 추가
+                    std::cout << "DEBUG: Parsed chains = '" << chains1 << "'" << std::endl; // ✅ 디버깅 출력 추가
                 } else {
                     throw std::runtime_error("Missing argument for -c / --chains.");
                 }
@@ -104,10 +112,12 @@ Parameters::Parameters(int argc, char* argv[]) {
 
 void Parameters::print_args() {
     cout << "Input parameters >> " << endl;
-    cout << "  in_file: " << in_file << endl;
+    cout << "  in_file1: " << in_file << endl;
+    cout << "  in_file2: " << in_file2 << endl;
     cout << "  format: " << format << endl;
     cout << "  mode: " << mode << endl;
-    cout << "  chains: " << chains << endl;
+    cout << "  chains1: " << chains1 << endl;
+    cout << "  chains2: " << chains2 << endl;
     cout << "  width: " << width << endl;
     cout << "  height: " << height << endl;
     cout << "  show_structure: " << show_structure << endl;
