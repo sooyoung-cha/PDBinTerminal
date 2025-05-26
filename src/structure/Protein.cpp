@@ -135,8 +135,8 @@ void Protein::set_init_atoms(const std::string& in_file,
             }
         }
     }
-
     openFile.close();
+
 }
 
 void Protein::load_data(const std::string& in_file, const std::string& target_chains, const bool& show_structure) {

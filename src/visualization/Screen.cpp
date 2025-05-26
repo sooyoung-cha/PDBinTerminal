@@ -22,8 +22,37 @@ void Screen::set_protein1(Protein* protein) {
     data1 = protein;
 }
 
-void Screen::set_protein2(Protein* protein) {
+void Screen::set_protein2(Protein* protein, const std::string& umatrix, const std::string& tmatrix) {
     data2 = protein;
+
+    float matrix1[3][3];
+    size_t start = 0;
+    size_t end;
+    int idx = 0;
+    while ((end = umatrix.find(',', start)) != std::string::npos && idx < 9) {
+        matrix1[idx / 3][idx % 3] = std::stof(umatrix.substr(start, end - start));
+        start = end + 1;
+        idx++;
+    }
+
+    if (idx < 9)
+        matrix1[idx / 3][idx % 3] = std::stof(umatrix.substr(start));
+
+    size_t start2 = 0;
+    size_t end2;
+    int idx2 = 0;
+    float (matrix2)[3];
+    while ((end2 = tmatrix.find(',', start)) != std::string::npos && idx < 3) {
+        matrix2[idx2++] = std::stof(tmatrix.substr(start2, end2 - start));
+        start2 = end2 + 1;
+    }
+
+    if (idx2 < 3)
+        matrix2[idx2++] = std::stof(tmatrix.substr(start2));
+
+    data2->do_rotation(matrix1);
+    //TODO
+    // data2->do_shift(matrix2);
 }
 
 char Screen::getPixelCharFromDepth(float z) {

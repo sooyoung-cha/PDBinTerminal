@@ -28,6 +28,8 @@ public:
     // 변형
     void set_rotate(int x_rotate, int y_rotate, int z_rotate);
     void set_shift(float shift_x, float shift_y, float shift_z);
+    void do_rotation(float rotate_mat[3][3]);
+    void do_shift(float shift_mat[3]);
 
 private:
     void set_ss_info(const std::string& in_file, const std::string& target_chains,
@@ -37,8 +39,6 @@ private:
                         const std::string& target_chains,
                         std::vector<std::tuple<char, int, char, int, char>> ss_info,
                         const bool& show_structure);
-    void do_rotation(float rotate_mat[3][3]);
-    void do_shift(float shift_mat[3]);
 
     // 멤버 데이터
     std::map<char, std::vector<Atom>> init_atoms;

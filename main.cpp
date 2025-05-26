@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
     
     Screen screen(params.get_width(), params.get_height(), params.get_show_structure(), params.get_mode(), params.issame); 
     screen.set_protein1(&protein1);
-    screen.set_protein2(&protein2);
+    screen.set_protein2(&protein2, params.get_umatrix(), params.get_tmatrix());
 
     bool run = true;
     while(run) {

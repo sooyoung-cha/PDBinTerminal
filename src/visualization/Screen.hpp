@@ -30,7 +30,7 @@ public:
     bool isSame = true;
     char getPixelCharFromDepth(float z);
     void set_protein1(Protein* protein);
-    void set_protein2(Protein* protein);
+    void set_protein2(Protein* protein, const std::string& umatrix, const std::string& tmatrix);
     void set_zoom_level(float zoom);
     void drawScreen();
     void assign_colors_to_points(std::vector<RenderPoint>& points);

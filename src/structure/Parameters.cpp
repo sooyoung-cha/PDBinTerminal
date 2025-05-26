@@ -97,6 +97,14 @@ Parameters::Parameters(int argc, char* argv[]) {
             else if (!strcmp(argv[i], "-s") || !strcmp(argv[i], "--structure")) {
                 show_structure = true;
             }
+            else if (!strcmp(argv[i], "-u") || !strcmp(argv[i], "--umatrix")) {
+                umatrix = argv[i + 1];
+                i++;
+            }
+            else if (!strcmp(argv[i], "-t") || !strcmp(argv[i], "--tmatrix")) {
+                tmatrix = argv[i + 1];
+                i++;
+            }
             else {
                 throw std::runtime_error("Unknown parameter: " + std::string(argv[i])); // ⬅ throw 수정 (문제 3 해결)
             }
@@ -120,6 +128,8 @@ void Parameters::print_args() {
     cout << "  chains2: " << chains2 << endl;
     cout << "  width: " << width << endl;
     cout << "  height: " << height << endl;
+    cout << "  umatrix: " << umatrix << endl;
+    cout << "  tmatrix: " << tmatrix << endl;
     cout << "  show_structure: " << show_structure << endl;
     return;
 }
