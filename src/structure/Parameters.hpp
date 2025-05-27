@@ -18,6 +18,8 @@ class Parameters{
         string format = "pdb";
         string chains1 = "";
         string chains2 = "";
+        string umatrix = "1,0,0,0,1,0,0,0,1";
+        string tmatrix = "0,0,0";
         string mode = "default";
 
     public:
@@ -43,6 +45,12 @@ class Parameters{
         }
         string get_chains2(){
             return chains2;
+        }
+        string get_umatrix(){
+            return umatrix;
+        }
+        string get_tmatrix(){
+            return tmatrix;
         }
         int get_width(){
             return width;
