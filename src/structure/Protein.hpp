@@ -5,6 +5,7 @@
 #include <vector>
 #include <tuple>
 #include <fstream>
+#include <sstream>
 #include <cmath>
 #include <limits>
 #include "Atom.hpp"
@@ -32,14 +33,20 @@ public:
     void do_shift(float shift_mat[3]);
 
 private:
-    void set_ss_info(const std::string& in_file, const std::string& target_chains,
+    void set_ss_info_pdb(const std::string& in_file, const std::string& target_chains,
                      std::vector<std::tuple<char, int, char, int, char>>& ss_info);
 
-    void set_init_atoms(const std::string& in_file, 
+    void set_init_atoms_pdb(const std::string& in_file, 
                         const std::string& target_chains,
                         std::vector<std::tuple<char, int, char, int, char>> ss_info,
                         const bool& show_structure);
+    void set_ss_info_cif(const std::string& in_file, const std::string& target_chains,
+                         std::vector<std::tuple<char, int, char, int, char>>& ss_info);
 
+    void set_init_atoms_cif(const std::string& in_file, 
+                            const std::string& target_chains,
+                            std::vector<std::tuple<char, int, char, int, char>> ss_info,
+                            const bool& show_structure);
     // 멤버 데이터
     std::map<char, std::vector<Atom>> init_atoms;
     std::map<char, std::vector<Atom>> ss_atoms;
