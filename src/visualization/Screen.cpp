@@ -302,7 +302,7 @@ void Screen::clear_screen() {
 }
 
 void Screen::set_zoom_level(float zoom){
-    if ((zoom_level + zoom > 0.5)&&(zoom_level + zoom < 10)){
+    if ((zoom_level + zoom > 1)&&(zoom_level + zoom < 20)){
         zoom_level += zoom;
     }
 }
@@ -415,12 +415,12 @@ bool Screen::handle_input(){
         // R, R (줌 인)
         case 114:
         case 82:
-            set_zoom_level(0.2);
+            set_zoom_level(0.5);
             break;   
         // F, f (줌 아웃)
         case 102:
         case 70:
-            set_zoom_level(-0.2);
+            set_zoom_level(-0.5);
             break;   
 
         // Q, q
