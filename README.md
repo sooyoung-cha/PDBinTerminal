@@ -50,7 +50,7 @@ make -j 10
 ### With options:
 
 ```bash
-./TerminalPDB example1.pdb\
+./TerminalPDB example1.pdb example2.pdb \
   -c A,B \                     # select chains A and B
   -m chain \                   # color mode: chain / rainbow / default
   -w 3 -h 2 \                  # terminal screen size (width x height units, 1~5)
@@ -60,6 +60,34 @@ make -j 10
 ```
 
 > You can move/rotate proteins individually or together during runtime with keyboard controls.
+
+## 🎮 Keyboard Controls
+
+* `0` — Control both proteins
+* `1` — Control only the first protein
+* `2` — Control only the second protein
+
+### Movement
+
+* `W` / `w`: move up (+Y)
+* `A` / `a`: move left (-X)
+* `S` / `s`: move down (-Y)
+* `D` / `d`: move right (+X)
+
+### Rotation
+
+* `X` / `x`: rotate around X-axis
+* `Y` / `y`: rotate around Y-axis
+* `Z` / `z`: rotate around Z-axis
+
+### Zoom
+
+* `R` / `r`: zoom in
+* `F` / `f`: zoom out
+
+### Exit
+
+* `Q` / `q`: quit program
 
 ## 🔗 Integration with Foldseek
 
