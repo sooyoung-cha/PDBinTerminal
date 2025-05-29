@@ -33,7 +33,7 @@ public:
     void set_protein2(Protein* protein, const std::string& umatrix, const std::string& tmatrix);
     void set_zoom_level(float zoom);
     void drawScreen();
-    void assign_colors_to_points(std::vector<RenderPoint>& points);
+    void assign_colors_to_points(std::vector<RenderPoint>& points, bool first);
     void drawLine(std::vector<RenderPoint>& points,
                   int x1, int y1, int x2, int y2,
                   float z1, float z2, char chainID, char structure);

@@ -95,7 +95,7 @@ void Screen::drawLine(std::vector<RenderPoint>& points,
     }
 }
 
-void Screen::assign_colors_to_points(std::vector<RenderPoint>& points) {
+void Screen::assign_colors_to_points(std::vector<RenderPoint>& points, bool first) {
     initscr();
     if (!has_colors() || !can_change_color()) {
         endwin();
@@ -113,9 +113,17 @@ void Screen::assign_colors_to_points(std::vector<RenderPoint>& points) {
     int rainbow_size = sizeof(rainbow) / sizeof(int);
 
     if (screen_mode == "default") {
-        init_pair(1, COLOR_GREEN, -1);
-        for (auto& pt : points) {
-            pt.color_id = 1;
+        if (first){
+            init_pair(1, COLOR_GREEN, -1);
+            for (auto& pt : points) {
+                pt.color_id = 1;
+            }            
+        }
+        else{
+            init_pair(2, COLOR_BLUE, -1);
+            for (auto& pt : points) {
+                pt.color_id = 2;
+            }  
         }
     }
 
@@ -247,8 +255,8 @@ void Screen::project() {
         finalPoints2.insert(finalPoints2.end(), chainPoints2.begin(), chainPoints2.end());
     }
 
-    assign_colors_to_points(finalPoints1); 
-    assign_colors_to_points(finalPoints2); 
+    assign_colors_to_points(finalPoints1, true); 
+    assign_colors_to_points(finalPoints2, false); 
 
     for (const auto& pt : finalPoints1) {
         int idx = pt.y * screen_width + pt.x;
