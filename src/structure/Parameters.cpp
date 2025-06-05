@@ -27,15 +27,17 @@ Parameters::Parameters(int argc, char* argv[]) {
     unsigned int start;
     if (argc > 1) {
         in_file = argv[1];
-        if (argv[2][0] != '-') {
+        if (argc > 2 && argv[2][0] != '-') {
             in_file2 = argv[2];
             start = 3;
             issame = false;
-        } else {
+        } 
+        else {
             in_file2 = argv[1];
             start = 2;
         }
-    } else {
+    }
+    else {
         std::cerr << "Need input file dir !!!" << std::endl;
         arg_okay = false;
         return;
@@ -73,7 +75,7 @@ Parameters::Parameters(int argc, char* argv[]) {
             else if (!strcmp(argv[i], "-w") || !strcmp(argv[i], "--width")) {
                 if (i + 1 < argc) {
                     if (is_valid_number(argv[i + 1], 1, 5)) {
-                        width = std::stoi(argv[i + 1]) * 40 + 40;
+                        width = std::stoi(argv[i + 1]);
                         ++i; 
                     } else {
                         throw std::runtime_error("Error: Parameter must be an integer between 1 and 5.");
@@ -85,7 +87,7 @@ Parameters::Parameters(int argc, char* argv[]) {
             else if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--height")) {
                 if (i + 1 < argc) {
                     if (is_valid_number(argv[i + 1], 1, 5)) {
-                        height = std::stoi(argv[i + 1]) * 10 + 30;
+                        height = std::stoi(argv[i + 1]);
                         ++i; 
                     } else {
                         throw std::runtime_error("Error: Parameter must be an integer between 1 and 5.");
@@ -116,13 +118,15 @@ Parameters::Parameters(int argc, char* argv[]) {
             return;
         }
     }
+
+    width = width * 40 + 40;
+    height = height * 10 + 30;
 }
 
 void Parameters::print_args() {
     cout << "Input parameters >> " << endl;
     cout << "  in_file1: " << in_file << endl;
     cout << "  in_file2: " << in_file2 << endl;
-    cout << "  format: " << format << endl;
     cout << "  mode: " << mode << endl;
     cout << "  chains1: " << chains1 << endl;
     cout << "  chains2: " << chains2 << endl;

@@ -10,7 +10,7 @@ std::vector<std::vector<Atom>> StructureMaker::extractHelixSegments(const Atom* 
     std::vector<Atom> current;
 
     for (int i = 0; i < num_atoms; ++i) {
-        if (atoms[i].mStructure == 'H') {
+        if (atoms[i].structure == 'H') {
             current.push_back(atoms[i]);
         } else {
             if (current.size() >= 4) {
@@ -36,9 +36,9 @@ void StructureMaker::computeHelixAxis(const std::vector<Atom>& helix, float (&ce
 
     // 1. 중심 좌표 계산
     for (const Atom& atom : helix) {
-        sum[0] += atom.mX;
-        sum[1] += atom.mY;
-        sum[2] += atom.mZ;
+        sum[0] += atom.x;
+        sum[1] += atom.y;
+        sum[2] += atom.z;
     }
 
     center[0] = sum[0] / N;
@@ -49,9 +49,9 @@ void StructureMaker::computeHelixAxis(const std::vector<Atom>& helix, float (&ce
     float cov[3][3] = {0};
 
     for (const Atom& atom : helix) {
-        float dx = atom.mX - center[0];
-        float dy = atom.mY - center[1];
-        float dz = atom.mZ - center[2];
+        float dx = atom.x - center[0];
+        float dy = atom.y - center[1];
+        float dz = atom.z - center[2];
 
         cov[0][0] += dx * dx;
         cov[0][1] += dx * dy;
@@ -96,12 +96,12 @@ void StructureMaker::calculate_ss_points(std::map<char, std::vector<Atom>>& init
         std::vector<Atom>& output = ss_atoms[chainID];
         size_t i = 0;
         while (i < atoms.size()) {
-            char s = atoms[i].mStructure;
+            char s = atoms[i].structure;
 
             if (s == 'H') {
                 // 헬릭스 시작: 연속된 H 구간 찾기
                 size_t start = i;
-                while (i < atoms.size() && atoms[i].mStructure == 'H') ++i;
+                while (i < atoms.size() && atoms[i].structure == 'H') ++i;
                 size_t end = i;
 
                 if (end - start >= 4) {
@@ -110,9 +110,9 @@ void StructureMaker::calculate_ss_points(std::map<char, std::vector<Atom>>& init
                     float center[3], axis[3];
                     computeHelixAxis(segment, center, axis);
 
-                    float dx = segment.back().mX - segment.front().mX;
-                    float dy = segment.back().mY - segment.front().mY;
-                    float dz = segment.back().mZ - segment.front().mZ;
+                    float dx = segment.back().x - segment.front().x;
+                    float dy = segment.back().y - segment.front().y;
+                    float dz = segment.back().z - segment.front().z;
                     float length = std::sqrt(dx * dx + dy * dy + dz * dz);
 
                     const float radius = 0.10f;
@@ -162,13 +162,13 @@ void StructureMaker::calculate_ss_points(std::map<char, std::vector<Atom>>& init
                 }
             }
 
-            else if (s == 'S' && i + 1 < atoms.size() && atoms[i + 1].mStructure == 'S') {
+            else if (s == 'S' && i + 1 < atoms.size() && atoms[i + 1].structure == 'S') {
                 const Atom& p1 = atoms[i];
                 const Atom& p2 = atoms[i + 1];
 
-                float dx = p2.mX - p1.mX;
-                float dy = p2.mY - p1.mY;
-                float dz = p2.mZ - p1.mZ;
+                float dx = p2.x - p1.x;
+                float dy = p2.y - p1.y;
+                float dz = p2.z - p1.z;
                 float len = std::sqrt(dx * dx + dy * dy + dz * dz);
                 if (len == 0) { i++; continue; }
 
@@ -198,13 +198,13 @@ void StructureMaker::calculate_ss_points(std::map<char, std::vector<Atom>>& init
                         n1[2] * step * 0.05f
                     };
 
-                    float x1 = p1.mX + offset[0];
-                    float y1 = p1.mY + offset[1];
-                    float z1 = p1.mZ + offset[2];
+                    float x1 = p1.x + offset[0];
+                    float y1 = p1.y + offset[1];
+                    float z1 = p1.z + offset[2];
 
-                    float x2 = p2.mX + offset[0];
-                    float y2 = p2.mY + offset[1];
-                    float z2 = p2.mZ + offset[2];
+                    float x2 = p2.x + offset[0];
+                    float y2 = p2.y + offset[1];
+                    float z2 = p2.z + offset[2];
 
                     for (int t = 0; t <= line_steps; ++t) {
                         float f = static_cast<float>(t) / line_steps;

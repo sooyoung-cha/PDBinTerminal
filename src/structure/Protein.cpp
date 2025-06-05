@@ -318,7 +318,6 @@ void Protein::set_init_atoms_cif(const std::string& in_file,
         for (const auto& [start_chainID, start, end_chainID, end, struct_type] : ss_info) {
             if (chainID == start_chainID && id >= start && id <= end) {
                 new_atom.set_structure(struct_type);
-                std::cout << chainID << " " << id << " " << struct_type << std::endl;
             }
         }
         
@@ -416,13 +415,13 @@ void Protein::set_shift(float shift_x, float shift_y, float shift_z) {
 void Protein::do_rotation(float rotate_mat[3][3]) {
     for (auto& [chainID, chain_atoms] : screen_atoms) {
         for (Atom& atom : chain_atoms) {
-            float x = atom.mX;
-            float y = atom.mY;
-            float z = atom.mZ;
+            float x = atom.x;
+            float y = atom.y;
+            float z = atom.z;
 
-            atom.mX = rotate_mat[0][0] * x + rotate_mat[0][1] * y + rotate_mat[0][2] * z;
-            atom.mY = rotate_mat[1][0] * x + rotate_mat[1][1] * y + rotate_mat[1][2] * z;
-            atom.mZ = rotate_mat[2][0] * x + rotate_mat[2][1] * y + rotate_mat[2][2] * z;
+            atom.x = rotate_mat[0][0] * x + rotate_mat[0][1] * y + rotate_mat[0][2] * z;
+            atom.y = rotate_mat[1][0] * x + rotate_mat[1][1] * y + rotate_mat[1][2] * z;
+            atom.z = rotate_mat[2][0] * x + rotate_mat[2][1] * y + rotate_mat[2][2] * z;
         }
     }
 }
@@ -430,9 +429,9 @@ void Protein::do_rotation(float rotate_mat[3][3]) {
 void Protein::do_shift(float shift_mat[3]) {
     for (auto& [chainID, chain_atoms] : screen_atoms) {
         for (Atom& atom : chain_atoms) {
-            atom.mX += shift_mat[0];
-            atom.mY += shift_mat[1];
-            atom.mZ += shift_mat[2];
+            atom.x += shift_mat[0];
+            atom.y += shift_mat[1];
+            atom.z += shift_mat[2];
         }
     }
 }

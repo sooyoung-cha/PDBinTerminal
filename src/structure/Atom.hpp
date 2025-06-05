@@ -2,41 +2,41 @@
 #include <iostream>
 
 struct Atom {
-    float mX;
-    float mY;
-    float mZ;
-    char mStructure='x';        // 'x' : default, 'h' : helix, 's' : sheet
+    float x;
+    float y;
+    float z;
+    char structure='x';        // 'x' : default, 'h' : helix, 's' : sheet
 
-    Atom(float x, float y, float z) : mX(x), mY(y), mZ(z), mStructure{'*'} {}
-    Atom(float x, float y, float z, char c) : mX(x), mY(y), mZ(z), mStructure{c} {}
-    Atom() : mX(0), mY(0), mZ(0), mStructure{'*'} {}
+    Atom(float x_, float y_, float z_) : x(x_), y(y_), z(z_), structure{'*'} {}
+    Atom(float x_, float y_, float z_, char c) : x(x_), y(y_), z(z_), structure{c} {}
+    Atom() : x(0), y(0), z(0), structure{'*'} {}
 
-    void set_position(float x, float y, float z) {
-        mX = x;
-        mY = y;
-        mZ = z;
+    void set_position(float x_, float y_, float z_) {
+        x = x_;
+        y = y_;
+        z = z_;
         return;
     }
 
     float* get_position() const {
         static float coords[3]; 
-        coords[0] = mX;
-        coords[1] = mY;
-        coords[2] = mZ;
+        coords[0] = x;
+        coords[1] = y;
+        coords[2] = z;
         return coords;
     }
 
     void set_structure(char c){
-        mStructure = c;
+        structure = c;
         return;
     }
 
     char get_structure() const {
-        return mStructure;
+        return structure;
     }
 
     void print_position() {
-        std::cout << "x: " << mX << ", y: " << mY << ", z: " << mZ << std::endl;
+        std::cout << "x: " << x << ", y: " << y << ", z: " << z << std::endl;
         return;
     }
 };

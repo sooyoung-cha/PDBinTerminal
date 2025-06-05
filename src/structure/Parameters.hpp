@@ -11,11 +11,10 @@ class Parameters{
     private:
         bool show_structure = false;
         bool arg_okay = true;
-        int width = 1;
-        int height = 1;
-        string in_file = "./test.pdb";
+        int width = 3;
+        int height = 3;
+        string in_file = "none";
         string in_file2 = "none";
-        string format = "pdb";
         string chains1 = "";
         string chains2 = "";
         string umatrix = "1,0,0,0,1,0,0,0,1";
@@ -36,9 +35,6 @@ class Parameters{
         }
         string get_in_file2(){
             return in_file2;
-        }
-        string get_format(){
-            return format;
         }
         string get_chains1(){
             return chains1;
