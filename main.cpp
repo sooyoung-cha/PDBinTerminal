@@ -25,7 +25,6 @@ int main(int argc, char* argv[]) {
     Protein protein2(params.get_in_file2(), params.get_chains2(), params.get_show_structure());
     screen.set_protein2(&protein2, params.get_umatrix(), params.get_tmatrix());
 
-
     bool run = true;
     while(run) {
         screen.drawScreen();

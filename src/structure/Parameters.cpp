@@ -23,29 +23,31 @@ bool Parameters::is_valid_number(const std::string& str, int min, int max) {
 
 Parameters::Parameters(int argc, char* argv[]) {
     arg_okay = true;
-    chains1 = "";  // ⬅ 기본값 설정 (문제 1 해결)
-    unsigned int start;
-    if (argc > 1) {
-        in_file = argv[1];
-        if (argc > 2 && argv[2][0] != '-') {
-            in_file2 = argv[2];
-            start = 3;
-            issame = false;
-        } 
-        else {
-            in_file2 = argv[1];
-            start = 2;
-        }
-    }
-    else {
-        std::cerr << "Need input file dir !!!" << std::endl;
+    
+    if (argc <= 1) {
+        std::cerr << "Need input file dir" << std::endl;
         arg_okay = false;
         return;
     }
 
-    for (int i = start; i < argc; i++) {
+    for (int i = 1; i < argc; i++) {
         try {
-            if (!strcmp(argv[i], "-m") || !strcmp(argv[i], "--mode")) {  // ✅ mode 옵션 추가
+            if (fs::exists(argv[i]) && fs::is_regular_file(argv[i])){
+                if (in_file == ""){
+                    in_file = argv[i];
+                    in_file2 = argv[i];
+                }
+                else if (issame){
+                    in_file2 = argv[i];
+                    issame = false;
+                }
+                else{
+                    std::cerr << "You can use only two files" << std::endl;
+                    arg_okay = false;
+                    return;
+                }
+            }
+            else if (!strcmp(argv[i], "-m") || !strcmp(argv[i], "--mode")) {  // ✅ mode 옵션 추가
                 if (i + 1 < argc) {
                     std::string val(argv[i + 1]);
                     std::transform(val.begin(), val.end(), val.begin(), ::tolower); // 소문자로 변환
@@ -119,8 +121,13 @@ Parameters::Parameters(int argc, char* argv[]) {
         }
     }
 
-    width = width * 40 + 40;
-    height = height * 10 + 30;
+    if (in_file == ""){
+        std::cerr << "Need input file dir" << std::endl;
+        arg_okay = false;
+        return;
+    }
+
+    return;
 }
 
 void Parameters::print_args() {

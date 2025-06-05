@@ -3,9 +3,10 @@
 #include <cstring>
 #include <algorithm>
 #include <cctype>
-
+#include <filesystem>
 
 using namespace std;
+namespace fs = std::filesystem;
 
 class Parameters{
     private:
@@ -13,8 +14,8 @@ class Parameters{
         bool arg_okay = true;
         int width = 3;
         int height = 3;
-        string in_file = "none";
-        string in_file2 = "none";
+        string in_file = "";
+        string in_file2 = "";
         string chains1 = "";
         string chains2 = "";
         string umatrix = "1,0,0,0,1,0,0,0,1";
@@ -49,10 +50,10 @@ class Parameters{
             return tmatrix;
         }
         int get_width(){
-            return width;
+            return width * 40 + 40;
         }
         int get_height(){
-            return height;
+            return height * 10 + 30;
         }
         std::string get_mode(){
             return mode;
