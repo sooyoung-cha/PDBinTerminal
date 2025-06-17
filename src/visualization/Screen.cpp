@@ -128,21 +128,20 @@ void Screen::assign_colors_to_points(std::vector<RenderPoint>& points, int prote
     }
 
     else if (screen_mode == "chain") {
-        std::unordered_map<char, int> local_chain_colors;
+        char cur_chain = '-';
         int color_index = 1;
         int num_colors = sizeof(unrainbow_ids) / sizeof(int);
 
         for (auto& pt : points) {
             char cID = pt.chainID;
-            if (local_chain_colors.find(cID) == local_chain_colors.end()) {
+            if (cID != cur_chain) {
+                cur_chain = cID;
                 int col = unrainbow_ids[(color_index - 1) % num_colors];
                 init_pair(color_index, col, -1);
-                local_chain_colors[cID] = color_index++;
+                color_index++;
             }
-            pt.color_id = local_chain_colors[cID];
+            pt.color_id = color_index;
         }
-
-        chain_colors = std::move(local_chain_colors);  // 저장
     }
 
     else if (screen_mode == "rainbow") {
