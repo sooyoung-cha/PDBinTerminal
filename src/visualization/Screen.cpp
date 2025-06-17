@@ -129,16 +129,16 @@ void Screen::assign_colors_to_points(std::vector<RenderPoint>& points, int prote
 
     else if (screen_mode == "chain") {
         char cur_chain = '-';
-        int color_index = 1;
+        int color_index = 0;
         int num_colors = sizeof(unrainbow_ids) / sizeof(int);
 
         for (auto& pt : points) {
             char cID = pt.chainID;
             if (cID != cur_chain) {
+                color_index++;
                 cur_chain = cID;
                 int col = unrainbow_ids[(color_index - 1) % num_colors];
                 init_pair(color_index, col, -1);
-                color_index++;
             }
             pt.color_id = color_index;
         }
