@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
+#include <vector>
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -14,34 +15,38 @@ class Parameters{
         bool arg_okay = true;
         int width = 3;
         int height = 3;
-        string in_file = "";
-        string in_file2 = "";
-        string chains1 = "";
-        string chains2 = "";
+        vector<string> in_file;
+        vector<string> chains;
         string umatrix = "1,0,0,0,1,0,0,0,1";
         string tmatrix = "0,0,0";
+        int ut_target = -1;
         string mode = "default";
 
     public:
         Parameters(int argc, char* argv[]);
-        bool issame = true;
 
         void print_args();
 
         bool is_valid_number(const std::string& str, int min, int max);
 
         // get, set
-        string get_in_file1(){
+        vector<string>& get_in_file(){
             return in_file;
         }
-        string get_in_file2(){
-            return in_file2;
+        string get_in_file(int idx){
+            if (idx < in_file.size()){
+                return in_file[idx];
+            }
+            return "";
         }
-        string get_chains1(){
-            return chains1;
+        vector<string>& get_chains(){
+            return chains;
         }
-        string get_chains2(){
-            return chains2;
+        string get_chains(int idx){
+            if (idx < chains.size()){
+                return chains[idx];
+            }
+            return "";
         }
         string get_umatrix(){
             return umatrix;
@@ -49,13 +54,16 @@ class Parameters{
         string get_tmatrix(){
             return tmatrix;
         }
+        int get_ut_target(){
+            return ut_target;
+        }
         int get_width(){
             return width * 40 + 40;
         }
         int get_height(){
             return height * 10 + 30;
         }
-        std::string get_mode(){
+        string get_mode(){
             return mode;
         }
         bool get_show_structure(){

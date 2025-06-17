@@ -10,3 +10,9 @@ set(
 )
 
 add_library(visualization ${visualization_source_files})
+
+target_link_libraries(visualization
+    PRIVATE
+    structure     
+    ${CURSES_LIBRARIES} 
+)

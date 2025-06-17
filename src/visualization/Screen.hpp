@@ -24,16 +24,19 @@ struct ScreenPixel {
 
 class Screen {
 public:
-    Screen(const int& width, const int& height, const bool& show_structure, const std::string& mode, bool isSame);
+    Screen(const int& width, const int& height, const bool& show_structure, const std::string& mode);
     ~Screen();
     bool handle_input();
     bool isSame = true;
     char getPixelCharFromDepth(float z);
-    void set_protein1(Protein* protein);
-    void set_protein2(Protein* protein, const std::string& umatrix, const std::string& tmatrix);
+    void set_protein(const std::string& in_file, const std::string& target_chains, const bool& show_structure);
+    void normalize_proteins();
+    void set_utmatrix(int protein_idx, const std::string& umatrix, const std::string& tmatrix);
+    // void set_protein1(Protein* protein);
+    // void set_protein2(Protein* protein, const std::string& umatrix, const std::string& tmatrix);
     void set_zoom_level(float zoom);
     void drawScreen();
-    void assign_colors_to_points(std::vector<RenderPoint>& points, bool first);
+    void assign_colors_to_points(std::vector<RenderPoint>& points, int protein_idx);
     void drawLine(std::vector<RenderPoint>& points,
                   int x1, int y1, int x2, int y2,
                   float z1, float z2, char chainID, char structure);
@@ -41,16 +44,19 @@ public:
     void drawBetaSheet(std::vector<RenderPoint>& points);
 
 private:
+    int structNum = -1;
     int screen_width;
     int screen_height;
-    int structNum = 0;
     bool screen_show_structure;
     std::string screen_mode;
     float aspect_ratio;
     float zoom_level;
     std::vector<ScreenPixel> screenPixels;  
-    Protein* data1;
-    Protein* data2;
+    std::vector<Protein*> data;    
+    BoundingBox global_bb;
+
+    // Protein* data1;
+    // Protein* data2;
 
     std::unordered_map<char, int> chain_colors;
 
@@ -79,5 +85,14 @@ private:
         21,  // Navy
         93,  // Violet
         129  // Magenta
+    };
+
+        std::vector<int> unrainbow_ids = {
+        82,  // Green
+        33,  // Blue
+        202, // Orange
+        93,  // Violet
+        226, // Yellow
+        118, // Lime
     };
 };

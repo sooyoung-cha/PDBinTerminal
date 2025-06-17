@@ -17,13 +17,17 @@ int main(int argc, char* argv[]) {
     cbreak();  // 특수 키 입력을 받도록 설정
     noecho();  // 입력한 문자를 화면에 표시하지 않음
 
-    Screen screen(params.get_width(), params.get_height(), params.get_show_structure(), params.get_mode(), params.issame); 
+    Screen screen(params.get_width(), params.get_height(), params.get_show_structure(), params.get_mode()); 
 
-    Protein protein1(params.get_in_file1(), params.get_chains1(), params.get_show_structure());    
-    screen.set_protein1(&protein1);
-    
-    Protein protein2(params.get_in_file2(), params.get_chains2(), params.get_show_structure());
-    screen.set_protein2(&protein2, params.get_umatrix(), params.get_tmatrix());
+    for (int i = 0; i < params.get_in_file().size(); i++){
+        screen.set_protein(params.get_in_file(i), params.get_chains(i), params.get_show_structure());
+    }
+
+    screen.normalize_proteins();
+
+    if (params.get_ut_target() != -1){
+        screen.set_utmatrix(params.get_ut_target(), params.get_umatrix(), params.get_tmatrix());
+    }
 
     bool run = true;
     while(run) {

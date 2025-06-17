@@ -5,26 +5,40 @@
 const float FOV = 90.0;
 const float PI = 3.14159265359f;
 
-Screen::Screen(const int& width, const int& height, const bool& show_structure, const std::string& mode, bool issame) {
+Screen::Screen(const int& width, const int& height, const bool& show_structure, const std::string& mode) {
     screen_width = width;
     screen_height = height;
     screen_show_structure = show_structure;
     screen_mode = mode;
     aspect_ratio = (float)screen_width / screen_height;
     zoom_level = 3;
-    isSame = issame;
 }
 
 Screen::~Screen() {
+    for (Protein* p : data) {
+        delete p;
+    }
+    data.clear(); 
 }
 
-void Screen::set_protein1(Protein* protein) {
-    data1 = protein;
+void Screen::set_protein(const std::string& in_file, const std::string& target_chains, const bool& show_structure) {
+    Protein* protein = new Protein(in_file, target_chains, show_structure);
+    data.push_back(protein);
 }
 
-void Screen::set_protein2(Protein* protein, const std::string& umatrix, const std::string& tmatrix) {
-    data2 = protein;
+void Screen::normalize_proteins(){
+    for (auto* p : data) {
+        BoundingBox bb = p->get_bounding_box();
+        global_bb = global_bb + bb; // + 연산자 오버로드를 통한 통합
+    }
 
+    for (auto* p : data) {
+        p->set_bounding_box(global_bb);
+        p->load_data();
+    }
+}
+
+void Screen::set_utmatrix(int protein_idx, const std::string& umatrix, const std::string& tmatrix) {
     float matrix1[3][3];
     size_t start = 0;
     size_t end;
@@ -50,7 +64,7 @@ void Screen::set_protein2(Protein* protein, const std::string& umatrix, const st
     if (idx2 < 3)
         matrix2[idx2++] = std::stof(tmatrix.substr(start2));
 
-    data2->do_rotation(matrix1);
+    data[protein_idx]->do_rotation(matrix1);
     //TODO
     // data2->do_shift(matrix2);
 }
@@ -95,7 +109,7 @@ void Screen::drawLine(std::vector<RenderPoint>& points,
     }
 }
 
-void Screen::assign_colors_to_points(std::vector<RenderPoint>& points, bool first) {
+void Screen::assign_colors_to_points(std::vector<RenderPoint>& points, int protein_idx) {
     initscr();
     if (!has_colors() || !can_change_color()) {
         endwin();
@@ -106,39 +120,22 @@ void Screen::assign_colors_to_points(std::vector<RenderPoint>& points, bool firs
     start_color();
     use_default_colors();
 
-    // rainbow 팔레트 (순서 중요)
-    int rainbow[] = {
-        COLOR_RED, COLOR_YELLOW, COLOR_GREEN, COLOR_CYAN, COLOR_BLUE, COLOR_MAGENTA
-    };
-    int rainbow_size = sizeof(rainbow) / sizeof(int);
-
     if (screen_mode == "default") {
-        if (first){
-            init_pair(1, COLOR_GREEN, -1);
-            for (auto& pt : points) {
-                pt.color_id = 1;
-            }            
-        }
-        else{
-            init_pair(2, COLOR_BLUE, -1);
-            for (auto& pt : points) {
-                pt.color_id = 2;
-            }  
+        for (auto& pt : points) {
+            init_pair(protein_idx+1, unrainbow_ids[protein_idx], -1);
+            pt.color_id = protein_idx + 1;
         }
     }
 
     else if (screen_mode == "chain") {
         std::unordered_map<char, int> local_chain_colors;
         int color_index = 1;
-        int available_colors[] = {
-            COLOR_GREEN, COLOR_YELLOW, COLOR_BLUE, COLOR_MAGENTA, COLOR_CYAN, COLOR_WHITE
-        };
-        int num_colors = sizeof(available_colors) / sizeof(int);
+        int num_colors = sizeof(unrainbow_ids) / sizeof(int);
 
         for (auto& pt : points) {
             char cID = pt.chainID;
             if (local_chain_colors.find(cID) == local_chain_colors.end()) {
-                int col = available_colors[(color_index - 1) % num_colors];
+                int col = unrainbow_ids[(color_index - 1) % num_colors];
                 init_pair(color_index, col, -1);
                 local_chain_colors[cID] = color_index++;
             }
@@ -177,103 +174,60 @@ void Screen::project() {
     float fovRad = 1.0 / tan(adjustedFOV * 0.5 / 180.0 * PI);
     float focal_offset = 10.0f;
 
-    std::vector<RenderPoint> finalPoints1;
-    std::vector<RenderPoint> finalPoints2;
+    std::vector<RenderPoint> finalPoints;
 
     // project dots and connect them into line
-    for (const auto& [chainID, chain_atoms] : data1->get_atoms()) {
-        if (chain_atoms.size() == 0) continue;
+    int protein_idx = 0;
+    for (Protein* target : data){
+        for (const auto& [chainID, chain_atoms] : target->get_atoms()) {
+            if (chain_atoms.size() == 0) continue;
 
-        int num_atoms = data1->get_chain_length(chainID);
-        std::vector<RenderPoint> chainPoints1;
+            int num_atoms = target->get_chain_length(chainID);
+            std::vector<RenderPoint> chainPoints;
 
-        int prevScreenX = -1, prevScreenY = -1;
-        float prevZ = -1.0f;
+            int prevScreenX = -1, prevScreenY = -1;
+            float prevZ = -1.0f;
 
-        for (int i = 0; i < num_atoms; ++i) {
-            float* position = chain_atoms[i].get_position();
-            float x = position[0];
-            float y = position[1];
-            float z = position[2] + focal_offset;
-            char structure = chain_atoms[i].get_structure();
+            for (int i = 0; i < num_atoms; ++i) {
+                float* position = chain_atoms[i].get_position();
+                float x = position[0];
+                float y = position[1];
+                float z = position[2] + focal_offset;
+                char structure = chain_atoms[i].get_structure();
 
-            float projectedX = (x / z) * fovRad;
-            float projectedY = (y / z) * fovRad;
-            int screenX = (int)((projectedX + 1.0) * 0.5 * screen_width);
-            int screenY = (int)((1.0 - projectedY) * 0.5 * screen_height);
+                float projectedX = (x / z) * fovRad;
+                float projectedY = (y / z) * fovRad;
+                int screenX = (int)((projectedX + 1.0) * 0.5 * screen_width);
+                int screenY = (int)((1.0 - projectedY) * 0.5 * screen_height);
 
-            if (prevScreenX != -1 && prevScreenY != -1) {
-                drawLine(chainPoints1, prevScreenX, prevScreenY, screenX, screenY, prevZ, z, chainID, structure);
-            }
-            
-            if (screenX >= 0 && screenX < screen_width && screenY >= 0 && screenY < screen_height) {
-                chainPoints1.push_back({screenX, screenY, z, getPixelCharFromDepth(z), chainID, structure});
-            }
+                if (prevScreenX != -1 && prevScreenY != -1) {
+                    drawLine(chainPoints, prevScreenX, prevScreenY, screenX, screenY, prevZ, z, chainID, structure);
+                }
+                
+                if (screenX >= 0 && screenX < screen_width && screenY >= 0 && screenY < screen_height) {
+                    chainPoints.push_back({screenX, screenY, z, getPixelCharFromDepth(z), chainID, structure});
+                }
 
-            prevScreenX = screenX;
-            prevScreenY = screenY;
-            prevZ = z;
-        }
-
-        finalPoints1.insert(finalPoints1.end(), chainPoints1.begin(), chainPoints1.end());
-    }
-    for (const auto& [chainID, chain_atoms] : data2->get_atoms()) {
-        if (chain_atoms.size() == 0) continue;
-
-        int num_atoms = data2->get_chain_length(chainID);
-        std::vector<RenderPoint> chainPoints2;
-
-        int prevScreenX = -1, prevScreenY = -1;
-        float prevZ = -1.0f;
-
-        for (int i = 0; i < num_atoms; ++i) {
-            float* position = chain_atoms[i].get_position();
-            float x = position[0];
-            float y = position[1];
-            float z = position[2] + focal_offset;
-            char structure = chain_atoms[i].get_structure();
-
-            float projectedX = (x / z) * fovRad;
-            float projectedY = (y / z) * fovRad;
-            int screenX = (int)((projectedX + 1.0) * 0.5 * screen_width);
-            int screenY = (int)((1.0 - projectedY) * 0.5 * screen_height);
-
-            if (prevScreenX != -1 && prevScreenY != -1) {
-                drawLine(chainPoints2, prevScreenX, prevScreenY, screenX, screenY, prevZ, z, chainID, structure);
-            }
-            
-            if (screenX >= 0 && screenX < screen_width && screenY >= 0 && screenY < screen_height) {
-                chainPoints2.push_back({screenX, screenY, z, getPixelCharFromDepth(z), chainID, structure});
+                prevScreenX = screenX;
+                prevScreenY = screenY;
+                prevZ = z;
             }
 
-
-            prevScreenX = screenX;
-            prevScreenY = screenY;
-            prevZ = z;
+            finalPoints.insert(finalPoints.end(), chainPoints.begin(), chainPoints.end());
         }
+        assign_colors_to_points(finalPoints, protein_idx); 
+        protein_idx++;
 
-        finalPoints2.insert(finalPoints2.end(), chainPoints2.begin(), chainPoints2.end());
-    }
-
-    assign_colors_to_points(finalPoints1, true); 
-    assign_colors_to_points(finalPoints2, false); 
-
-    for (const auto& pt : finalPoints1) {
-        int idx = pt.y * screen_width + pt.x;
-        if (pt.z < screenPixels[idx].depth) {
-            screenPixels[idx].depth = pt.z;
-            screenPixels[idx].pixel = pt.pixel;
-            screenPixels[idx].color_id = pt.color_id;
+        for (const auto& pt : finalPoints) {
+            int idx = pt.y * screen_width + pt.x;
+            if (pt.z < screenPixels[idx].depth) {
+                screenPixels[idx].depth = pt.z;
+                screenPixels[idx].pixel = pt.pixel;
+                screenPixels[idx].color_id = pt.color_id;
+            }
         }
     }
-    for (const auto& pt : finalPoints2) {
-        int idx = pt.y * screen_width + pt.x;
-        if (pt.z < screenPixels[idx].depth) {
-            screenPixels[idx].depth = pt.z;
-            screenPixels[idx].pixel = pt.pixel;
-            screenPixels[idx].color_id = pt.color_id;
-        }
-    }
+
 }
 
 
@@ -310,130 +264,123 @@ void Screen::clear_screen() {
 }
 
 void Screen::set_zoom_level(float zoom){
-    if ((zoom_level + zoom > 1)&&(zoom_level + zoom < 20)){
+    if ((zoom_level + zoom > 1)&&(zoom_level + zoom < 50)){
         zoom_level += zoom;
     }
 }
 
 bool Screen::handle_input(){
     bool keep_show = true;
-    switch(getch()){
-        // struct 1
-        case 49:
-        if (isSame == false) {
-            structNum = 1;
-        }
-            break;
-        // strcut 2
-        case 50:
-        if (isSame == false) {
-            structNum = 2;
-        }
-            break;
-        // both (default)
+    int key = getch();
+    switch(key){
+        // select protein
         case 48:
-            structNum = 0;
-            break;
-        // W, w (y 축 양의 이동)
-        case 119:
-        case 87:
-            if (structNum == 1) {
-                data1->set_shift(0, 0.1, 0);
-            } else if (structNum == 2) {
-                data2->set_shift(0, 0.1, 0);
-            } else {
-                data1->set_shift(0, 0.1, 0);
-                data2->set_shift(0, 0.1, 0);
+        case 49:
+        case 50:
+        case 51:
+        case 52:
+        case 53:
+        case 54:
+            if (key == 48){
+                structNum = -1;
+            }
+            else if (key - 48 <= data.size()) {
+                structNum = key - 49;
             }
             break;
         // A, a (x 축 음의 이동)
-        case 97:
         case 65:
-            if (structNum == 1) {
-                data1->set_shift(-0.1, 0, 0);
-            } else if (structNum == 2) {
-                data2->set_shift(-0.1, 0, 0);
+        case 97:
+            if (structNum != -1) {
+                data[structNum]->set_shift(-0.1, 0, 0);
             } else {
-                data1->set_shift(-0.1, 0, 0);
-                data2->set_shift(-0.1, 0, 0);
+                for (int i = 0; i < data.size(); i++){
+                    data[i]->set_shift(-0.1, 0, 0);
+                }
+            }
+            break;
+        // D, d (x 축 양의 이동)
+        case 68:
+        case 100:
+            if (structNum != -1) {
+                data[structNum]->set_shift(0.1, 0, 0);
+            } else {
+                for (int i = 0; i < data.size(); i++){
+                    data[i]->set_shift(0.1, 0, 0);
+                }
             }
             break;
         // S, s (y 축 음의 이동)
-        case 115:
         case 83:
-            if (structNum == 1) {
-                data1->set_shift(0, -0.1, 0);
-            } else if (structNum == 2) {
-                data2->set_shift(0, -0.1, 0);
+        case 115:
+            if (structNum != -1) {
+                data[structNum]->set_shift(0, -0.1, 0);
             } else {
-                data1->set_shift(0, -0.1, 0);
-                data2->set_shift(0, -0.1, 0);
+                for (int i = 0; i < data.size(); i++){
+                    data[i]->set_shift(0, -0.1, 0);
+                }
             }
             break;      
-        // D, d (x 축 양의 이동)
-        case 100:
-        case 68:
-        if (structNum == 1) {
-            data1->set_shift(0.1, 0, 0);
-        } else if (structNum == 2) {
-            data2->set_shift(0.1, 0, 0);
-        } else {
-            data1->set_shift(0.1, 0, 0);
-            data2->set_shift(0.1, 0, 0);
-        }
+        // W, w (y 축 양의 이동)
+        case 87:
+        case 119:
+            if (structNum != -1) {
+                data[structNum]->set_shift(0, 0.1, 0);
+            } else {
+                for (int i = 0; i < data.size(); i++){
+                    data[i]->set_shift(0, 0.1, 0);
+                }
+            }
             break;
 
         // X, x (x 축 중심 회전)
-        case 120:
         case 88:
-        if (structNum == 1) {
-            data1->set_rotate(1, 0, 0);
-        } else if (structNum == 2) {
-            data2->set_rotate(1, 0, 0);
-        } else {
-            data1->set_rotate(1, 0, 0);
-            data2->set_rotate(1, 0, 0);
-        }
+        case 120:
+            if (structNum != -1) {
+                data[structNum]->set_rotate(1, 0, 0);
+            } else {
+                for (int i = 0; i < data.size(); i++){
+                    data[i]->set_rotate(1, 0, 0);
+                }
+            }
             break;  
         // Y, y (y 축 중심 회전)
-        case 121:
         case 89:
-        if (structNum == 1) {
-            data1->set_rotate(0, 1, 0);
-        } else if (structNum == 2) {
-            data2->set_rotate(0, 1, 0);
-        } else {
-            data1->set_rotate(0, 1, 0);
-            data2->set_rotate(0, 1, 0);
-        }
+        case 121:
+            if (structNum != -1) {
+                data[structNum]->set_rotate(0, 1, 0);
+            } else {
+                for (int i = 0; i < data.size(); i++){
+                    data[i]->set_rotate(0, 1, 0);
+                }
+            }
             break;  
         // Z, z (z 축 중심 회전)
-        case 122:
         case 90:
-        if (structNum == 1) {
-            data1->set_rotate(0, 0, 1);
-        } else if (structNum == 2) {
-            data2->set_rotate(0, 0, 1);
-        } else {
-            data1->set_rotate(0, 0, 1);
-            data2->set_rotate(0, 0, 1);
-        }
+        case 122:
+            if (structNum != -1) {
+                data[structNum]->set_rotate(0, 0, 1);
+            } else {
+                for (int i = 0; i < data.size(); i++){
+                    data[i]->set_rotate(0, 0, 1);
+                }
+            }
             break;  
 
-        // R, R (줌 인)
-        case 114:
-        case 82:
-            set_zoom_level(0.5);
-            break;   
         // F, f (줌 아웃)
-        case 102:
         case 70:
+        case 102:
             set_zoom_level(-0.5);
+            break;   
+        // R, R (줌 인)
+        case 82:
+        case 114:
+            set_zoom_level(0.5);
             break;   
 
         // Q, q
-        case 113:
         case 81:
+        case 113:
             keep_show = false;
             break;
 

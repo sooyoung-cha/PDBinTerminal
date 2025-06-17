@@ -1,8 +1,16 @@
 #include "Protein.hpp"
 
-Protein::Protein(const std::string& in_file, const std::string& target_chains, const bool& show_structure) {
+Protein::Protein(const std::string& in_file_, const std::string& target_chains_, const bool& show_structure_) {
     structureMaker = StructureMaker();
-    load_data(in_file, target_chains, show_structure); 
+
+    in_file = in_file_;
+    target_chains = target_chains_;
+    show_structure = show_structure_;
+
+    if (in_file.find(".pdb") != std::string::npos) 
+        set_bbox_pdb(in_file);
+    else if (in_file.find(".cif") != std::string::npos)
+        set_bbox_pdb(in_file);
 
     return;
 }
@@ -37,7 +45,9 @@ int Protein::get_length() {
     return total_atoms;
 }
 
-void Protein::set_ss_info_pdb(const std::string& in_file, const std::string& target_chains, 
+// pdb file
+void Protein::set_ss_info_pdb(const std::string& in_file,
+                              const std::string& target_chains,
                               std::vector<std::tuple<char, int, char, int, char>>& ss_info) {
     std::ifstream openFile(in_file);
     if (!openFile.is_open()) {
@@ -64,30 +74,19 @@ void Protein::set_ss_info_pdb(const std::string& in_file, const std::string& tar
             end = std::stoi(line.substr(33, 4));
             struct_type = 'H'; // HELIX → 'H'
         }
-
-        ss_info.emplace_back(start_chainID, start, end_chainID, end, struct_type);
+        if (target_chains == "-" || target_chains.find(start_chainID) != std::string::npos) {
+            ss_info.emplace_back(start_chainID, start, end_chainID, end, struct_type);
+        }
     }
     openFile.close();
 }
 
-void Protein::set_init_atoms_pdb(const std::string& in_file, 
-                                 const std::string& target_chains,
-                                 std::vector<std::tuple<char, int, char, int, char>> ss_info,
-                                 const bool& show_structure) {
-
+void Protein::set_bbox_pdb(const std::string& in_file) {
     std::ifstream openFile(in_file);
     if (!openFile.is_open()) {
         std::cerr << "Error opening file: " << in_file << std::endl;
         return;
     }
-
-    // ✅ 1. 최소/최대 좌표 찾기
-    float min_x = std::numeric_limits<float>::max();
-    float min_y = std::numeric_limits<float>::max();
-    float min_z = std::numeric_limits<float>::max();
-    float max_x = std::numeric_limits<float>::lowest();
-    float max_y = std::numeric_limits<float>::lowest();
-    float max_z = std::numeric_limits<float>::lowest();
 
     std::string line;
     while (getline(openFile, line)) {
@@ -96,32 +95,38 @@ void Protein::set_init_atoms_pdb(const std::string& in_file,
             float y = std::stof(line.substr(38, 8));
             float z = std::stof(line.substr(46, 8));
 
-            min_x = std::min(min_x, x);
-            min_y = std::min(min_y, y);
-            min_z = std::min(min_z, z);
-            max_x = std::max(max_x, x);
-            max_y = std::max(max_y, y);
-            max_z = std::max(max_z, z);
+            bounding_box.min_x = std::min(bounding_box.min_x, x);
+            bounding_box.min_y = std::min(bounding_box.min_y, y);
+            bounding_box.min_z = std::min(bounding_box.min_z, z);
+            bounding_box.max_x = std::max(bounding_box.max_x, x);
+            bounding_box.max_y = std::max(bounding_box.max_y, y);
+            bounding_box.max_z = std::max(bounding_box.max_z, z);
         }
     }
 
-    openFile.clear();
-    openFile.seekg(0); // 파일 다시 읽기 준비
+    openFile.close();
 
-    // ✅ 2. 정규화된 좌표 저장
+}
+
+void Protein::set_init_atoms_pdb(const std::string& in_file, 
+                            const std::string& target_chains,
+                            std::vector<std::tuple<char, int, char, int, char>> ss_info) {
+    std::ifstream openFile(in_file);
+
+    std::string line;
     while (getline(openFile, line)) {
         if (line.substr(0, 4) == "ATOM" && line.substr(13, 2) == "CA") {
             char chainID = line[21];
-            if (target_chains.empty() || target_chains.find(chainID) != std::string::npos) {
+            if (target_chains == "-" || target_chains.find(chainID) != std::string::npos) {
                 int pdb_idx = std::stoi(line.substr(24, 4)); 
                 float x = std::stof(line.substr(30, 8));
                 float y = std::stof(line.substr(38, 8));
                 float z = std::stof(line.substr(46, 8));
 
                 // ✅ 좌표 정규화 ([-1, 1] 범위로 조정)
-                x = 2 * (x - min_x) / (max_x - min_x) - 1;
-                y = 2 * (y - min_y) / (max_y - min_y) - 1;
-                z = 2 * (z - min_z) / (max_z - min_z) - 1;
+                x = 2 * (x - bounding_box.min_x) / (bounding_box.max_x - bounding_box.min_x) - 1;
+                y = 2 * (y - bounding_box.min_y) / (bounding_box.max_y - bounding_box.min_y) - 1;
+                z = 2 * (z - bounding_box.min_z) / (bounding_box.max_z - bounding_box.min_z) - 1;
 
                 Atom new_atom(x, y, z);
                 
@@ -129,8 +134,7 @@ void Protein::set_init_atoms_pdb(const std::string& in_file,
                     if (chainID == start_chainID && pdb_idx >= start && pdb_idx <= end) {
                         new_atom.set_structure(struct_type);
                     }
-                }
-                
+                }                
                 init_atoms[chainID].push_back(new_atom);
             }
         }
@@ -139,7 +143,9 @@ void Protein::set_init_atoms_pdb(const std::string& in_file,
 
 }
 
-void Protein::set_ss_info_cif(const std::string& in_file, const std::string& target_chains,
+// cif file
+void Protein::set_ss_info_cif(const std::string& in_file, 
+                              const std::string& target_chains,
                               std::vector<std::tuple<char, int, char, int, char>>& ss_info) {
     auto parse_section = [&](const std::string& keyword, char struct_type) {
         std::ifstream file(in_file);
@@ -164,7 +170,7 @@ void Protein::set_ss_info_cif(const std::string& in_file, const std::string& tar
             }
             else if (line.find("#") != std::string::npos && in_section) {
                 if (!loop){
-                    if (target_chains.empty() || target_chains.find(start_chain) != std::string::npos) {
+                    if (target_chains == "-" || target_chains.find(start_chain) != std::string::npos) {
                         ss_info.emplace_back(start_chain, start, end_chain, end, struct_type);
                     }
                 }
@@ -217,7 +223,7 @@ void Protein::set_ss_info_cif(const std::string& in_file, const std::string& tar
                 start = std::stoi(tokens[start_idx]);
                 end = std::stoi(tokens[end_idx]);
                 
-                if (target_chains.empty() || target_chains.find(start_chain) != std::string::npos) {
+                if (target_chains == "-" || target_chains.find(start_chain) != std::string::npos) {
                     ss_info.emplace_back(start_chain, start, end_chain, end, struct_type);
                 }
             }
@@ -230,11 +236,7 @@ void Protein::set_ss_info_cif(const std::string& in_file, const std::string& tar
     parse_section("_struct_sheet_range.", 'S');      // 시트
 }
 
-
-void Protein::set_init_atoms_cif(const std::string& in_file,
-                                 const std::string& target_chains,
-                                 std::vector<std::tuple<char, int, char, int, char>> ss_info,
-                                 const bool& show_structure) {
+void Protein::set_bbox_cif(const std::string& in_file) {
 
     std::ifstream file(in_file);
     if (!file.is_open()) {
@@ -248,8 +250,73 @@ void Protein::set_init_atoms_cif(const std::string& in_file,
 
     int group_PDB_idx, x_idx, y_idx, z_idx, chain_idx, ca_idx, id_idx;
 
-    float min_x = std::numeric_limits<float>::max(), min_y = min_x, min_z = min_x;
-    float max_x = std::numeric_limits<float>::lowest(), max_y = max_x, max_z = max_x;
+    std::vector<std::tuple<char, int, float, float, float>> atom_data;
+
+    // ✅ 1. atom_site 영역 수집
+    while (std::getline(file, line)) {
+        if (line.find("_atom_site.") != std::string::npos) {
+            atom_site_idx++;
+            auto pos = line.rfind('.');
+            if (line.substr(pos + 1).find("group_PDB") != std::string::npos){
+                group_PDB_idx = atom_site_idx;
+            }
+            else if (line.substr(pos + 1).find("Cartn_x") != std::string::npos){
+                x_idx = atom_site_idx;
+            }
+            else if (line.substr(pos + 1).find("Cartn_y") != std::string::npos){
+                y_idx = atom_site_idx;
+            }
+            else if (line.substr(pos + 1).find("Cartn_z") != std::string::npos){
+                z_idx = atom_site_idx;
+            }
+            else if (line.substr(pos + 1).find("label_atom_id") != std::string::npos){
+                ca_idx = atom_site_idx;
+            }
+        }
+        else if (atom_site_idx != -1){
+            if (line.find("#") != std::string::npos) {
+                break;
+            }
+            
+            std::istringstream ss(line);
+            std::string token;
+            std::vector<std::string> tokens;
+            while (ss >> token) {
+                tokens.push_back(token);
+            }
+            if (tokens[group_PDB_idx] == "ATOM" && tokens[ca_idx] == "CA"){
+                float x = std::stof(tokens[x_idx]);
+                float y = std::stof(tokens[y_idx]);
+                float z = std::stof(tokens[z_idx]);
+        
+                bounding_box.min_x = std::min(bounding_box.min_x, x);
+                bounding_box.min_y = std::min(bounding_box.min_y, y);
+                bounding_box.min_z = std::min(bounding_box.min_z, z);
+                bounding_box.max_x = std::max(bounding_box.max_x, x);
+                bounding_box.max_y = std::max(bounding_box.max_y, y);
+                bounding_box.max_z = std::max(bounding_box.max_z, z);
+            }
+        }
+    }
+    file.close();
+}
+
+void Protein::set_init_atoms_cif(const std::string& in_file,
+                            const std::string& target_chains,
+                            std::vector<std::tuple<char, int, char, int, char>> ss_info) {
+
+    std::ifstream file(in_file);
+    if (!file.is_open()) {
+        std::cerr << "Error opening file: " << in_file << std::endl;
+        return;
+    }
+
+    std::string line;
+    std::vector<std::string> atom_lines;
+    int atom_site_idx = -1;
+
+    int group_PDB_idx, x_idx, y_idx, z_idx, chain_idx, ca_idx, id_idx;
+
     std::vector<std::tuple<char, int, float, float, float>> atom_data;
 
     // ✅ 1. atom_site 영역 수집
@@ -296,33 +363,25 @@ void Protein::set_init_atoms_cif(const std::string& in_file,
                 float z = std::stof(tokens[z_idx]);
                 int id = std::stoi(tokens[id_idx]);
                 char chainID = tokens[chain_idx][0];
-        
-                atom_data.emplace_back(chainID, id, x, y, z);
-        
-                min_x = std::min(min_x, x); max_x = std::max(max_x, x);
-                min_y = std::min(min_y, y); max_y = std::max(max_y, y);
-                min_z = std::min(min_z, z); max_z = std::max(max_z, z);
+                if (target_chains == "-" || target_chains.find(chainID) != std::string::npos)  {
+                    float atom_x = 2 * (x - bounding_box.min_x) / (bounding_box.max_x - bounding_box.min_x) - 1;
+                    float atom_y = 2 * (y - bounding_box.min_y) / (bounding_box.max_y - bounding_box.min_y) - 1;
+                    float atom_z = 2 * (z - bounding_box.min_z) / (bounding_box.max_z - bounding_box.min_z) - 1;
+
+                    
+                    Atom new_atom(atom_x, atom_y, atom_z);
+                    for (const auto& [start_chainID, start, end_chainID, end, struct_type] : ss_info) {
+                        if (chainID == start_chainID && id >= start && id <= end) {
+                            new_atom.set_structure(struct_type);
+                        }
+                    }
+                    
+                    init_atoms[chainID].push_back(new_atom);
+                }
             }
         }
     }
     file.close();
-
-    // ✅ 2. 정규화된 좌표 저장
-    for (const auto& [chainID, id, x, y, z] : atom_data) {
-        float atom_x = 2 * (x - min_x) / (max_x - min_x) - 1;
-        float atom_y = 2 * (y - min_y) / (max_y - min_y) - 1;
-        float atom_z = 2 * (z - min_z) / (max_z - min_z) - 1;
-
-        
-        Atom new_atom(atom_x, atom_y, atom_z);
-        for (const auto& [start_chainID, start, end_chainID, end, struct_type] : ss_info) {
-            if (chainID == start_chainID && id >= start && id <= end) {
-                new_atom.set_structure(struct_type);
-            }
-        }
-        
-        init_atoms[chainID].push_back(new_atom);
-    }
 }
 
 std::ostream& operator<<(std::ostream& os, const std::tuple<char, int, char, int, char>& t) {
@@ -335,12 +394,11 @@ std::ostream& operator<<(std::ostream& os, const std::tuple<char, int, char, int
     return os;
 }
 
-void Protein::load_data(const std::string& in_file, const std::string& target_chains, const bool& show_structure) {
-    
+void Protein::load_data() {    
     std::vector<std::tuple<char, int, char, int, char>> ss_info;
     if (in_file.find(".pdb") != std::string::npos) {
         set_ss_info_pdb(in_file, target_chains, ss_info);
-        set_init_atoms_pdb(in_file, target_chains, ss_info, show_structure);
+        set_init_atoms_pdb(in_file, target_chains, ss_info);
 
         if (init_atoms.empty()) {
             std::cerr << "Error: input PDB file is empty." << std::endl;
@@ -355,7 +413,7 @@ void Protein::load_data(const std::string& in_file, const std::string& target_ch
     }
     else if (in_file.find(".cif") != std::string::npos){
         set_ss_info_cif(in_file, target_chains, ss_info);
-        set_init_atoms_cif(in_file, target_chains, ss_info, show_structure);
+        set_init_atoms_cif(in_file, target_chains, ss_info);
 
         if (init_atoms.empty()) {
             std::cerr << "Error: input CIF file is empty." << std::endl;

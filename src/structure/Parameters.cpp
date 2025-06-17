@@ -32,20 +32,8 @@ Parameters::Parameters(int argc, char* argv[]) {
 
     for (int i = 1; i < argc; i++) {
         try {
-            if (fs::exists(argv[i]) && fs::is_regular_file(argv[i])){
-                if (in_file == ""){
-                    in_file = argv[i];
-                    in_file2 = argv[i];
-                }
-                else if (issame){
-                    in_file2 = argv[i];
-                    issame = false;
-                }
-                else{
-                    std::cerr << "You can use only two files" << std::endl;
-                    arg_okay = false;
-                    return;
-                }
+            if (fs::exists(argv[i]) && fs::is_regular_file(argv[i]) && in_file.size() < 6){
+                in_file.push_back(argv[i]);
             }
             else if (!strcmp(argv[i], "-m") || !strcmp(argv[i], "--mode")) {  // ✅ mode 옵션 추가
                 if (i + 1 < argc) {
@@ -55,23 +43,24 @@ Parameters::Parameters(int argc, char* argv[]) {
                         mode = val;
                         i++;
                     } else {
-                        throw std::runtime_error("Invalid value for --mode. Use 'chain' or 'rainbow'.");
+                        throw std::runtime_error("Error: Invalid value for --mode. Use 'chain' or 'rainbow'.");
                     }
                 } else {
-                    throw std::runtime_error("Missing value for -m / --mode.");
+                    throw std::runtime_error("Error: Missing value for -m / --mode.");
                 }
             }
             else if (!strcmp(argv[i], "-c") || !strcmp(argv[i], "--chains")) {
                 if (i + 1 < argc) {  
                     if (argv[i+1] == nullptr || strlen(argv[i+1]) == 0) {  // ✅ 비어 있는 값 체크
-                        throw std::runtime_error("Error: Chains argument is empty!");
+                        throw std::runtime_error("Error: Chains argument is empty.");
                     }
-                    chains1 = argv[i+1];  
+                    while(in_file.size() - 1 != chains.size()){
+                        chains.push_back("-");
+                    }
+                    chains.push_back(argv[i+1]);  
                     i++;
-
-                    std::cout << "DEBUG: Parsed chains = '" << chains1 << "'" << std::endl; // ✅ 디버깅 출력 추가
                 } else {
-                    throw std::runtime_error("Missing argument for -c / --chains.");
+                    throw std::runtime_error("Error: Missing argument for -c / --chains.");
                 }
             }
             else if (!strcmp(argv[i], "-w") || !strcmp(argv[i], "--width")) {
@@ -102,15 +91,35 @@ Parameters::Parameters(int argc, char* argv[]) {
                 show_structure = true;
             }
             else if (!strcmp(argv[i], "-u") || !strcmp(argv[i], "--umatrix")) {
-                umatrix = argv[i + 1];
-                i++;
+                if (i + 1 < argc) {
+                    umatrix = argv[i + 1];
+                    i++;
+                }else {
+                    throw std::runtime_error("Error: Missing value for -u / --umatrix.");
+                }
             }
             else if (!strcmp(argv[i], "-t") || !strcmp(argv[i], "--tmatrix")) {
-                tmatrix = argv[i + 1];
-                i++;
+                if (i + 1 < argc) {
+                    tmatrix = argv[i + 1];
+                    i++;
+                }else {
+                    throw std::runtime_error("Error: Missing value for -t / --tmatrix.");
+                }
+            }
+            else if (!strcmp(argv[i], "-i") || !strcmp(argv[i], "--ut_target_idx")) {
+                if (i + 1 < argc) {
+                    if (is_valid_number(argv[i + 1], 1, 5)) {
+                        ut_target = std::stoi(argv[i + 1])-1;
+                        ++i; 
+                    } else {
+                        throw std::runtime_error("Error: Parameter must be an integer between 1 and 5.");
+                    }
+                } else {
+                    throw std::runtime_error("Error: Missing value for -i / --ut_target_idx.");
+                }
             }
             else {
-                throw std::runtime_error("Unknown parameter: " + std::string(argv[i])); // ⬅ throw 수정 (문제 3 해결)
+                throw std::runtime_error("Error: Unknown parameter: " + std::string(argv[i])); // ⬅ throw 수정 (문제 3 해결)
             }
         }
         catch (const std::exception& e) {
@@ -121,8 +130,18 @@ Parameters::Parameters(int argc, char* argv[]) {
         }
     }
 
-    if (in_file == ""){
-        std::cerr << "Need input file dir" << std::endl;
+    while(in_file.size() != chains.size()){
+        chains.push_back("-");
+    }
+
+    if (in_file.size() == 0){
+        std::cerr << "Error: Need input file dir" << std::endl;
+        arg_okay = false;
+        return;
+    }
+    if (ut_target > in_file.size() && ut_target != -1){
+        std::cerr << "Error: Invalid utmatrix target index." << std::endl;
+        std::cerr << in_file.size() << " "  << ut_target << std::endl;
         arg_okay = false;
         return;
     }
@@ -132,15 +151,16 @@ Parameters::Parameters(int argc, char* argv[]) {
 
 void Parameters::print_args() {
     cout << "Input parameters >> " << endl;
-    cout << "  in_file1: " << in_file << endl;
-    cout << "  in_file2: " << in_file2 << endl;
+    cout << "  in_file: " << endl;
+    for (int i = 0; i < in_file.size(); i++) {
+        std::cout << "\t" << in_file[i] << ": " << chains[i] << '\n'; 
+    }
     cout << "  mode: " << mode << endl;
-    cout << "  chains1: " << chains1 << endl;
-    cout << "  chains2: " << chains2 << endl;
     cout << "  width: " << width << endl;
     cout << "  height: " << height << endl;
     cout << "  umatrix: " << umatrix << endl;
     cout << "  tmatrix: " << tmatrix << endl;
+    cout << "  ut_target: " << ut_target << endl;
     cout << "  show_structure: " << show_structure << endl;
     return;
 }
