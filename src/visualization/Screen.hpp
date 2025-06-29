@@ -50,7 +50,8 @@ private:
     bool screen_show_structure;
     std::string screen_mode;
     float aspect_ratio;
-    float zoom_level;
+    float zoom_level1;
+    float zoom_level2;
     std::vector<ScreenPixel> screenPixels;  
     std::vector<Protein*> data;    
     BoundingBox global_bb;
