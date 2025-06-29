@@ -471,15 +471,30 @@ void Protein::set_shift(float shift_x, float shift_y, float shift_z) {
 }
 
 void Protein::do_rotation(float rotate_mat[3][3]) {
+    float avgx = 0;
+    float avgy = 0;
+    float avgz = 0;
+    int num = 0;
+    for (auto& [chainID, chain_atoms] : screen_atoms) {
+        for (Atom& atom : chain_atoms) {
+            avgx += atom.x;
+            avgy += atom.y;
+            avgz += atom.z;
+            num += 1;   
+        }
+    }
+    avgx /= num;
+    avgy /= num;
+    avgz /= num;
     for (auto& [chainID, chain_atoms] : screen_atoms) {
         for (Atom& atom : chain_atoms) {
             float x = atom.x;
             float y = atom.y;
             float z = atom.z;
 
-            atom.x = rotate_mat[0][0] * x + rotate_mat[0][1] * y + rotate_mat[0][2] * z;
-            atom.y = rotate_mat[1][0] * x + rotate_mat[1][1] * y + rotate_mat[1][2] * z;
-            atom.z = rotate_mat[2][0] * x + rotate_mat[2][1] * y + rotate_mat[2][2] * z;
+            atom.x = avgx + rotate_mat[0][0] * (x - avgx) + rotate_mat[0][1] * (y - avgy) + rotate_mat[0][2] * (z - avgz);
+            atom.y = rotate_mat[1][0] * (x - avgx) + avgy + rotate_mat[1][1] * (y - avgy) + rotate_mat[1][2] * (z - avgz);
+            atom.z = rotate_mat[2][0] * (x - avgx) + rotate_mat[2][1] * (y - avgy) +  avgz + rotate_mat[2][2] * (z - avgz);
         }
     }
 }
