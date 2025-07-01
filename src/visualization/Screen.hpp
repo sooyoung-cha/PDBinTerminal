@@ -32,16 +32,14 @@ public:
     void set_protein(const std::string& in_file, const std::string& target_chains, const bool& show_structure);
     void normalize_proteins();
     void set_utmatrix(int protein_idx, const std::string& umatrix, const std::string& tmatrix);
-    // void set_protein1(Protein* protein);
-    // void set_protein2(Protein* protein, const std::string& umatrix, const std::string& tmatrix);
     void set_zoom_level(float zoom);
     void drawScreen();
     void assign_colors_to_points(std::vector<RenderPoint>& points, int protein_idx);
     void drawLine(std::vector<RenderPoint>& points,
                   int x1, int y1, int x2, int y2,
                   float z1, float z2, char chainID, char structure);
-    void drawAlphHelix(std::vector<RenderPoint>& points);
-    void drawBetaSheet(std::vector<RenderPoint>& points);
+    // void drawAlphHelix(std::vector<RenderPoint>& points);
+    // void drawBetaSheet(std::vector<RenderPoint>& points);
 
 private:
     int structNum = -1;
@@ -50,14 +48,10 @@ private:
     bool screen_show_structure;
     std::string screen_mode;
     float aspect_ratio;
-    float zoom_level1;
-    float zoom_level2;
     std::vector<ScreenPixel> screenPixels;  
-    std::vector<Protein*> data;    
+    std::vector<Protein*> data;  
+    std::vector<float> zoom_level;
     BoundingBox global_bb;
-
-    // Protein* data1;
-    // Protein* data2;
 
     std::unordered_map<char, int> chain_colors;
 

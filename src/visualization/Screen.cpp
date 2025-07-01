@@ -4,6 +4,7 @@
 
 const float FOV = 90.0;
 const float PI = 3.14159265359f;
+const float structnumber = 6;
 
 Screen::Screen(const int& width, const int& height, const bool& show_structure, const std::string& mode) {
     screen_width = width;
@@ -11,8 +12,7 @@ Screen::Screen(const int& width, const int& height, const bool& show_structure, 
     screen_show_structure = show_structure;
     screen_mode = mode;
     aspect_ratio = (float)screen_width / screen_height;
-    zoom_level1 = 3;
-    zoom_level2 = 3;
+    zoom_level = std::vector<float>(structnumber, 3); 
 }
 
 Screen::~Screen() {
@@ -170,106 +170,63 @@ void Screen::assign_colors_to_points(std::vector<RenderPoint>& points, int prote
 }
 
 void Screen::project() {
-    float adjustedFOV1 = FOV / zoom_level1;
-    float fovRad1 = 1.0 / tan(adjustedFOV1 * 0.5 / 180.0 * PI);
-    float adjustedFOV2 = FOV / zoom_level2;
-    float fovRad2 = 1.0 / tan(adjustedFOV2 * 0.5 / 180.0 * PI);
+    std::vector<float> fovRads;
+    for (size_t i = 0; i < data.size(); i++) {
+        fovRads.push_back(1.0 / tan((FOV / zoom_level[i]) * 0.5 / 180.0 * PI));
+    }
     float focal_offset = 10.0f;
 
     std::vector<RenderPoint> finalPoints;
 
     // project dots and connect them into line
     int protein_idx = 0;
-    for (const auto& [chainID, chain_atoms] : data[0]->get_atoms()) {
-        if (chain_atoms.size() == 0) continue;
+    for (size_t ii = 0; ii < data.size(); ii++) {
+        Protein* target = data[ii];
+        for (const auto& [chainID, chain_atoms] : target->get_atoms()) {
+            if (chain_atoms.size() == 0) continue;
 
-        int num_atoms = data[0]->get_chain_length(chainID);
-        std::vector<RenderPoint> chainPoints;
+            int num_atoms = target->get_chain_length(chainID);
+            std::vector<RenderPoint> chainPoints;
 
-        int prevScreenX = -1, prevScreenY = -1;
-        float prevZ = -1.0f;
+            int prevScreenX = -1, prevScreenY = -1;
+            float prevZ = -1.0f;
 
-        for (int i = 0; i < num_atoms; ++i) {
-            float* position = chain_atoms[i].get_position();
-            float x = position[0];
-            float y = position[1];
-            float z = position[2] + focal_offset;
-            char structure = chain_atoms[i].get_structure();
+            for (int i = 0; i < num_atoms; ++i) {
+                float* position = chain_atoms[i].get_position();
+                float x = position[0];
+                float y = position[1];
+                float z = position[2] + focal_offset;
+                char structure = chain_atoms[i].get_structure();
 
-            float projectedX = (x / z) * fovRad1;
-            float projectedY = (y / z) * fovRad1;
-            int screenX = (int)((projectedX + 1.0) * 0.5 * screen_width);
-            int screenY = (int)((1.0 - projectedY) * 0.5 * screen_height);
+                float projectedX = (x / z) * fovRads[ii];
+                float projectedY = (y / z) * fovRads[ii];
+                int screenX = (int)((projectedX + 1.0) * 0.5 * screen_width);
+                int screenY = (int)((1.0 - projectedY) * 0.5 * screen_height);
 
-            if (prevScreenX != -1 && prevScreenY != -1) {
-                drawLine(chainPoints, prevScreenX, prevScreenY, screenX, screenY, prevZ, z, chainID, structure);
+                if (prevScreenX != -1 && prevScreenY != -1) {
+                    drawLine(chainPoints, prevScreenX, prevScreenY, screenX, screenY, prevZ, z, chainID, structure);
+                }
+                
+                if (screenX >= 0 && screenX < screen_width && screenY >= 0 && screenY < screen_height) {
+                    chainPoints.push_back({screenX, screenY, z, getPixelCharFromDepth(z), chainID, structure});
+                }
+
+                prevScreenX = screenX;
+                prevScreenY = screenY;
+                prevZ = z;
             }
-            
-            if (screenX >= 0 && screenX < screen_width && screenY >= 0 && screenY < screen_height) {
-                chainPoints.push_back({screenX, screenY, z, getPixelCharFromDepth(z), chainID, structure});
-            }
-
-            prevScreenX = screenX;
-            prevScreenY = screenY;
-            prevZ = z;
+            finalPoints.insert(finalPoints.end(), chainPoints.begin(), chainPoints.end());
         }
-        finalPoints.insert(finalPoints.end(), chainPoints.begin(), chainPoints.end());
-    }
-    assign_colors_to_points(finalPoints, protein_idx); 
-    protein_idx++;
+        assign_colors_to_points(finalPoints, protein_idx); 
+        protein_idx++;
 
-    for (const auto& pt : finalPoints) {
-        int idx = pt.y * screen_width + pt.x;
-        if (pt.z < screenPixels[idx].depth) {
-            screenPixels[idx].depth = pt.z;
-            screenPixels[idx].pixel = pt.pixel;
-            screenPixels[idx].color_id = pt.color_id;
-        }
-    }
-    for (const auto& [chainID, chain_atoms] : data[1]->get_atoms()) {
-        if (chain_atoms.size() == 0) continue;
-
-        int num_atoms = data[1]->get_chain_length(chainID);
-        std::vector<RenderPoint> chainPoints;
-
-        int prevScreenX = -1, prevScreenY = -1;
-        float prevZ = -1.0f;
-
-        for (int i = 0; i < num_atoms; ++i) {
-            float* position = chain_atoms[i].get_position();
-            float x = position[0];
-            float y = position[1];
-            float z = position[2] + focal_offset;
-            char structure = chain_atoms[i].get_structure();
-
-            float projectedX = (x / z) * fovRad2;
-            float projectedY = (y / z) * fovRad2;
-            int screenX = (int)((projectedX + 1.0) * 0.5 * screen_width);
-            int screenY = (int)((1.0 - projectedY) * 0.5 * screen_height);
-
-            if (prevScreenX != -1 && prevScreenY != -1) {
-                drawLine(chainPoints, prevScreenX, prevScreenY, screenX, screenY, prevZ, z, chainID, structure);
+        for (const auto& pt : finalPoints) {
+            int idx = pt.y * screen_width + pt.x;
+            if (pt.z < screenPixels[idx].depth) {
+                screenPixels[idx].depth = pt.z;
+                screenPixels[idx].pixel = pt.pixel;
+                screenPixels[idx].color_id = pt.color_id;
             }
-            
-            if (screenX >= 0 && screenX < screen_width && screenY >= 0 && screenY < screen_height) {
-                chainPoints.push_back({screenX, screenY, z, getPixelCharFromDepth(z), chainID, structure});
-            }
-
-            prevScreenX = screenX;
-            prevScreenY = screenY;
-            prevZ = z;
-        }
-        finalPoints.insert(finalPoints.end(), chainPoints.begin(), chainPoints.end());
-    }
-    assign_colors_to_points(finalPoints, protein_idx); 
-    protein_idx++;
-
-    for (const auto& pt : finalPoints) {
-        int idx = pt.y * screen_width + pt.x;
-        if (pt.z < screenPixels[idx].depth) {
-            screenPixels[idx].depth = pt.z;
-            screenPixels[idx].pixel = pt.pixel;
-            screenPixels[idx].color_id = pt.color_id;
         }
     }
 }
@@ -306,21 +263,14 @@ void Screen::clear_screen() {
 }
 
 void Screen::set_zoom_level(float zoom){
-    if (structNum == 0) {
-        if ((zoom_level1 + zoom > 1)&&(zoom_level1 + zoom < 50)){
-            zoom_level1 += zoom;
-        }
-    } else if (structNum == 1) {
-        if ((zoom_level2 + zoom > 1)&&(zoom_level2 + zoom < 50)){
-            zoom_level2 += zoom;
+    if (structNum == -1) {
+        for (size_t i = 0; i < structnumber; i++) {
+            if ((zoom_level[i] + zoom > 1)&&(zoom_level[i] + zoom < 50)){
+                zoom_level[i] += zoom;
+            }
         }
     } else {
-        if ((zoom_level1 + zoom > 1)&&(zoom_level1 + zoom < 50)){
-            zoom_level1 += zoom;
-        }
-        if ((zoom_level2 + zoom > 1)&&(zoom_level2 + zoom < 50)){
-            zoom_level2 += zoom;
-        }
+        zoom_level[structNum] += zoom;
     }
 }
 
