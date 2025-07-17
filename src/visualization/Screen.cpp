@@ -76,8 +76,8 @@ char Screen::getPixelCharFromDepth(float z) {
     else if (z < 9.70) return '%';
     else if (z < 9.90) return '*';
     else if (z < 10.10) return '^';
-    else if (z < 10.30) return '.';
-    else return '_';
+    else if (z < 10.30) return '-';
+    else return '.';
 }
 
 void Screen::drawLine(std::vector<RenderPoint>& points,
@@ -270,7 +270,9 @@ void Screen::set_zoom_level(float zoom){
             }
         }
     } else {
-        zoom_level[structNum] += zoom;
+        if ((zoom_level[structNum] + zoom > 1)&&(zoom_level[structNum] + zoom < 50)){
+            zoom_level[structNum] += zoom;
+        }
     }
 }
 

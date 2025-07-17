@@ -18,7 +18,7 @@ struct RenderPoint {
 
 struct ScreenPixel {
     float depth = std::numeric_limits<float>::max();  // z-buffer용
-    char pixel = '_';      // 표시할 문자
+    char pixel = ' ';      // 표시할 문자
     int color_id = 0;      // ncurses color pair index
 };
 
