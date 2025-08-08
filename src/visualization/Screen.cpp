@@ -177,6 +177,7 @@ void Screen::project() {
     float focal_offset = 10.0f;
 
     std::vector<RenderPoint> finalPoints;
+    std::vector<RenderPoint> chainPoints;
 
     // project dots and connect them into line
     int protein_idx = 0;
@@ -186,7 +187,7 @@ void Screen::project() {
             if (chain_atoms.size() == 0) continue;
 
             int num_atoms = target->get_chain_length(chainID);
-            std::vector<RenderPoint> chainPoints;
+            chainPoints.clear();
 
             int prevScreenX = -1, prevScreenY = -1;
             float prevZ = -1.0f;
@@ -210,14 +211,13 @@ void Screen::project() {
                 if (screenX >= 0 && screenX < screen_width && screenY >= 0 && screenY < screen_height) {
                     chainPoints.push_back({screenX, screenY, z, getPixelCharFromDepth(z), chainID, structure});
                 }
-
                 prevScreenX = screenX;
                 prevScreenY = screenY;
                 prevZ = z;
             }
-            finalPoints.insert(finalPoints.end(), chainPoints.begin(), chainPoints.end());
         }
-        assign_colors_to_points(finalPoints, protein_idx); 
+        assign_colors_to_points(chainPoints, protein_idx); 
+        finalPoints.insert(finalPoints.end(), chainPoints.begin(), chainPoints.end());
         protein_idx++;
 
         for (const auto& pt : finalPoints) {
