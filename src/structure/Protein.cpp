@@ -10,8 +10,7 @@ Protein::Protein(const std::string& in_file_, const std::string& target_chains_,
     if (in_file.find(".pdb") != std::string::npos) 
         set_bbox_pdb(in_file);
     else if (in_file.find(".cif") != std::string::npos)
-        set_bbox_pdb(in_file);
-
+        set_bbox_cif(in_file);
     return;
 }
 
