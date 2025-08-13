@@ -31,7 +31,7 @@ public:
     char getPixelCharFromDepth(float z);
     void set_protein(const std::string& in_file, const std::string& target_chains, const bool& show_structure);
     void normalize_proteins();
-    void set_utmatrix(int protein_idx, const std::string& umatrix, const std::string& tmatrix);
+    void set_utmatrix(const std::string& utmatrix);
     void set_zoom_level(float zoom);
     void drawScreen();
     void assign_colors_to_points(std::vector<RenderPoint>& points, int protein_idx);

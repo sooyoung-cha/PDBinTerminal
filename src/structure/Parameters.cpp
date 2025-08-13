@@ -32,10 +32,7 @@ Parameters::Parameters(int argc, char* argv[]) {
 
     for (int i = 1; i < argc; i++) {
         try {
-            if (fs::exists(argv[i]) && fs::is_regular_file(argv[i]) && in_file.size() < 6){
-                in_file.push_back(argv[i]);
-            }
-            else if (!strcmp(argv[i], "-m") || !strcmp(argv[i], "--mode")) {  // ✅ mode 옵션 추가
+            if (!strcmp(argv[i], "-m") || !strcmp(argv[i], "--mode")) {  // ✅ mode 옵션 추가
                 if (i + 1 < argc) {
                     std::string val(argv[i + 1]);
                     std::transform(val.begin(), val.end(), val.begin(), ::tolower); // 소문자로 변환
@@ -90,33 +87,14 @@ Parameters::Parameters(int argc, char* argv[]) {
             else if (!strcmp(argv[i], "-s") || !strcmp(argv[i], "--structure")) {
                 show_structure = true;
             }
-            else if (!strcmp(argv[i], "-u") || !strcmp(argv[i], "--umatrix")) {
+            else if (!strcmp(argv[i], "-ut") || !strcmp(argv[i], "--utmatrix")) {
                 if (i + 1 < argc) {
-                    umatrix = argv[i + 1];
-                    i++;
-                }else {
+                    utmatrix = argv[++i];
+                } else {
                     throw std::runtime_error("Error: Missing value for -u / --umatrix.");
                 }
-            }
-            else if (!strcmp(argv[i], "-t") || !strcmp(argv[i], "--tmatrix")) {
-                if (i + 1 < argc) {
-                    tmatrix = argv[i + 1];
-                    i++;
-                }else {
-                    throw std::runtime_error("Error: Missing value for -t / --tmatrix.");
-                }
-            }
-            else if (!strcmp(argv[i], "-i") || !strcmp(argv[i], "--ut_target_idx")) {
-                if (i + 1 < argc) {
-                    if (is_valid_number(argv[i + 1], 1, 5)) {
-                        ut_target = std::stoi(argv[i + 1])-1;
-                        ++i; 
-                    } else {
-                        throw std::runtime_error("Error: Parameter must be an integer between 1 and 5.");
-                    }
-                } else {
-                    throw std::runtime_error("Error: Missing value for -i / --ut_target_idx.");
-                }
+            } else if (fs::exists(argv[i]) && fs::is_regular_file(argv[i]) && in_file.size() < 6){
+                in_file.push_back(argv[i]);
             }
             else {
                 throw std::runtime_error("Error: Unknown parameter: " + std::string(argv[i])); // ⬅ throw 수정 (문제 3 해결)
@@ -139,13 +117,6 @@ Parameters::Parameters(int argc, char* argv[]) {
         arg_okay = false;
         return;
     }
-    if (ut_target > in_file.size() && ut_target != -1){
-        std::cerr << "Error: Invalid utmatrix target index." << std::endl;
-        std::cerr << in_file.size() << " "  << ut_target << std::endl;
-        arg_okay = false;
-        return;
-    }
-
     return;
 }
 
@@ -158,9 +129,7 @@ void Parameters::print_args() {
     cout << "  mode: " << mode << endl;
     cout << "  width: " << width << endl;
     cout << "  height: " << height << endl;
-    cout << "  umatrix: " << umatrix << endl;
-    cout << "  tmatrix: " << tmatrix << endl;
-    cout << "  ut_target: " << ut_target << endl;
+    cout << "  utmatrix: " << utmatrix << endl;
     cout << "  show_structure: " << show_structure << endl;
     return;
 }

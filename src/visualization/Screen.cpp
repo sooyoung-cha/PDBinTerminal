@@ -39,35 +39,73 @@ void Screen::normalize_proteins(){
     }
 }
 
-void Screen::set_utmatrix(int protein_idx, const std::string& umatrix, const std::string& tmatrix) {
-    float matrix1[3][3];
-    size_t start = 0;
-    size_t end;
-    int idx = 0;
-    while ((end = umatrix.find(',', start)) != std::string::npos && idx < 9) {
-        matrix1[idx / 3][idx % 3] = std::stof(umatrix.substr(start, end - start));
-        start = end + 1;
-        idx++;
+void Screen::set_utmatrix(const std::string& utmatrix) {
+    size_t filenum = data.size();
+    float ** matrixpointer = new float*[filenum];
+    float ** vectorpointer = new float* [filenum];
+    for (int i = 0; i < filenum; i++) {
+        matrixpointer[i] = new float[9];
+        for (int j = 0; j < 9; j++) {
+            if (j % 4 == 0){
+                matrixpointer[i][j] = 1;
+            } else {
+                matrixpointer[i][j] = 0;
+            }
+        }
+        vectorpointer[i] = new float[3];
+        vectorpointer[i][0] = 0;
+        vectorpointer[i][1] = 0;
+        vectorpointer[i][2] = 0;
+    } 
+    std::ifstream file(utmatrix);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open utmatrix file\n";
+        return;
+    }
+    // 0 1 2 3 4 5
+    std::string line;
+    while (std::getline(file, line)) {
+        if (line.empty()) continue;
+
+        std::istringstream iss(line);
+        int index;
+        std::string mat9Str;
+        std::string mat3Str;
+
+        iss >> index;
+        iss >> mat9Str;
+        iss >> mat3Str;
+
+        if (index >= filenum) {
+            std::cout << "Index in utmatrix file should be from 0 to yourfilenum - 1." << std::endl;
+            continue;
+        }
+
+        {
+            std::istringstream mss(mat9Str);
+            std::string val;
+            int count = 0;
+            while (std::getline(mss, val, ',') && count < 9) {
+                matrixpointer[index][count++] = std::stod(val);
+            }
+        }
+
+        // {
+        //     std::istringstream mss(mat3Str);
+        //     std::string val;
+        //     int count = 0;
+        //     while (std::getline(mss, val, ',') && count < 3) {
+        //         vectorpointer[index][count++] = std::stod(val);
+        //     }
+        // }
     }
 
-    if (idx < 9)
-        matrix1[idx / 3][idx % 3] = std::stof(umatrix.substr(start));
-
-    size_t start2 = 0;
-    size_t end2;
-    int idx2 = 0;
-    float (matrix2)[3];
-    while ((end2 = tmatrix.find(',', start)) != std::string::npos && idx < 3) {
-        matrix2[idx2++] = std::stof(tmatrix.substr(start2, end2 - start));
-        start2 = end2 + 1;
+    file.close();
+    for (size_t i=0; i < filenum; i++) {
+        data[i]->do_rotation(matrixpointer[i]);
+        // data[i]->do_shift(vectorpointer[i]);
     }
-
-    if (idx2 < 3)
-        matrix2[idx2++] = std::stof(tmatrix.substr(start2));
-
-    data[protein_idx]->do_rotation(matrix1);
-    //TODO
-    // data2->do_shift(matrix2);
+    
 }
 
 char Screen::getPixelCharFromDepth(float z) {

@@ -17,9 +17,7 @@ class Parameters{
         int height = 3;
         vector<string> in_file;
         vector<string> chains;
-        string umatrix = "1,0,0,0,1,0,0,0,1";
-        string tmatrix = "0,0,0";
-        int ut_target = -1;
+        string utmatrix = "";
         string mode = "default";
 
     public:
@@ -48,14 +46,8 @@ class Parameters{
             }
             return "";
         }
-        string get_umatrix(){
-            return umatrix;
-        }
-        string get_tmatrix(){
-            return tmatrix;
-        }
-        int get_ut_target(){
-            return ut_target;
+        string get_utmatrix(){
+            return utmatrix;
         }
         int get_width(){
             return width * 40 + 40;

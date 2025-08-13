@@ -25,8 +25,8 @@ int main(int argc, char* argv[]) {
 
     screen.normalize_proteins();
 
-    if (params.get_ut_target() != -1){
-        screen.set_utmatrix(params.get_ut_target(), params.get_umatrix(), params.get_tmatrix());
+    if (params.get_utmatrix() != ""){
+        screen.set_utmatrix(params.get_utmatrix());
     }
 
     bool run = true;

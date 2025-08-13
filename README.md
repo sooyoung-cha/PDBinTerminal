@@ -55,7 +55,6 @@ make -j 10
   -m chain \                   # color mode: chain / rainbow / default
   -w 3 -h 2 \                  # terminal screen size (width x height units, 1~5)
   -u umatrix.txt \            # optional u matrix from Foldseek
-  -t tmatrix.txt \            # optional t matrix from Foldseek
   -s                          # show secondary structure (helix/sheet)
 ```
 
