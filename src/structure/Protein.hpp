@@ -59,7 +59,7 @@ public:
     void set_rotate(int x_rotate, int y_rotate, int z_rotate);
     void set_shift(float shift_x, float shift_y, float shift_z);
     void do_rotation(float* rotate_mat);
-    void do_shift(float shift_mat[3]);
+    void do_shift(float* shift_mat);
 
     const BoundingBox& get_bounding_box() const { return bounding_box; }
     void set_bounding_box(const BoundingBox& bb) { bounding_box = bb; }
