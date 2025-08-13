@@ -29,6 +29,7 @@ public:
     bool handle_input();
     bool isSame = true;
     char getPixelCharFromDepth(float z);
+    char getPixelCharFromDepthNormalized(float z, float z_min, float z_max);
     void set_protein(const std::string& in_file, const std::string& target_chains, const bool& show_structure);
     void normalize_proteins();
     void set_utmatrix(const std::string& utmatrix);
@@ -38,6 +39,10 @@ public:
     void drawLine(std::vector<RenderPoint>& points,
                   int x1, int y1, int x2, int y2,
                   float z1, float z2, char chainID, char structure);
+
+    void drawLineDirect(std::vector<RenderPoint>& points,
+                                int x1, int y1, int x2, int y2,
+                                float z1, float z2, char chainID, char structure);
     // void drawAlphHelix(std::vector<RenderPoint>& points);
     // void drawBetaSheet(std::vector<RenderPoint>& points);
 

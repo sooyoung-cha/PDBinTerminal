@@ -117,6 +117,36 @@ char Screen::getPixelCharFromDepth(float z) {
     else if (z < 10.30) return '-';
     else return '.';
 }
+void Screen::drawLineDirect(std::vector<RenderPoint>& points,
+                            int x1, int y1, int x2, int y2,
+                            float z1, float z2, char chainID, char structure) {
+    int dx = x2 - x1;
+    int dy = y2 - y1;
+    int steps = std::max(abs(dx), abs(dy));
+    if (steps == 0) steps = 1;
+
+    float xInc = (float)dx / steps;
+    float yInc = (float)dy / steps;
+    float zInc = (z2 - z1) / steps;
+
+    float x = x1;
+    float y = y1;
+    float z = z1;
+
+    for (int i = 0; i <= steps; ++i) {
+        int ix = static_cast<int>(x);
+        int iy = static_cast<int>(y);
+        if (ix >= 0 && ix < screen_width && iy >= 0 && iy < screen_height) {
+            RenderPoint p;
+            p.x = ix; p.y = iy; p.z = z;
+            p.pixel = getPixelCharFromDepthNormalized(z, z1, z2);
+            p.chainID = chainID;
+            p.structure = structure;
+            points.push_back(p);
+        }
+        x += xInc; y += yInc; z += zInc;
+    }
+}
 
 void Screen::drawLine(std::vector<RenderPoint>& points,
                       int x1, int y1, int x2, int y2,
@@ -206,7 +236,6 @@ void Screen::assign_colors_to_points(std::vector<RenderPoint>& points, int prote
         std::cerr << "Unknown mode: " << screen_mode << std::endl;
     }
 }
-
 void Screen::project() {
     std::vector<float> fovRads;
     for (size_t i = 0; i < data.size(); i++) {
@@ -215,59 +244,81 @@ void Screen::project() {
     float focal_offset = 10.0f;
 
     std::vector<RenderPoint> finalPoints;
-    std::vector<RenderPoint> chainPoints;
 
-    // project dots and connect them into line
     int protein_idx = 0;
     for (size_t ii = 0; ii < data.size(); ii++) {
         Protein* target = data[ii];
+
+        // 단백질 내 모든 체인 처리
         for (const auto& [chainID, chain_atoms] : target->get_atoms()) {
-            if (chain_atoms.size() == 0) continue;
+            if (chain_atoms.empty()) continue;
 
-            int num_atoms = target->get_chain_length(chainID);
-            chainPoints.clear();
-
+            std::vector<RenderPoint> chainPoints;
             int prevScreenX = -1, prevScreenY = -1;
             float prevZ = -1.0f;
 
-            for (int i = 0; i < num_atoms; ++i) {
-                float* position = chain_atoms[i].get_position();
-                float x = position[0];
-                float y = position[1];
-                float z = position[2] + focal_offset;
+            // 체인별 z 최소/최대 계산
+            float z_min = std::numeric_limits<float>::max();
+            float z_max = std::numeric_limits<float>::lowest();
+            for (const auto& atom : chain_atoms) {
+                float z = atom.get_position()[2] + focal_offset;
+                z_min = std::min(z_min, z);
+                z_max = std::max(z_max, z);
+            }
+
+            for (int i = 0; i < chain_atoms.size(); ++i) {
+                float* pos = chain_atoms[i].get_position();
+                float x = pos[0];
+                float y = pos[1];
+                float z = pos[2] + focal_offset;
                 char structure = chain_atoms[i].get_structure();
 
                 float projectedX = (x / z) * fovRads[ii];
                 float projectedY = (y / z) * fovRads[ii];
-                int screenX = (int)((projectedX + 1.0) * 0.5 * screen_width);
-                int screenY = (int)((1.0 - projectedY) * 0.5 * screen_height);
+                int screenX = static_cast<int>((projectedX + 1.0f) * 0.5f * screen_width);
+                int screenY = static_cast<int>((1.0f - projectedY) * 0.5f * screen_height);
 
                 if (prevScreenX != -1 && prevScreenY != -1) {
-                    drawLine(chainPoints, prevScreenX, prevScreenY, screenX, screenY, prevZ, z, chainID, structure);
+                    drawLineDirect(chainPoints, prevScreenX, prevScreenY, screenX, screenY, prevZ, z, chainID, structure);
                 }
-                
+
                 if (screenX >= 0 && screenX < screen_width && screenY >= 0 && screenY < screen_height) {
-                    chainPoints.push_back({screenX, screenY, z, getPixelCharFromDepth(z), chainID, structure});
+                    char pixel = getPixelCharFromDepthNormalized(z, z_min, z_max);
+                    chainPoints.push_back({screenX, screenY, z, pixel, chainID, structure});
                 }
                 prevScreenX = screenX;
                 prevScreenY = screenY;
                 prevZ = z;
             }
-        }
-        assign_colors_to_points(chainPoints, protein_idx); 
-        finalPoints.insert(finalPoints.end(), chainPoints.begin(), chainPoints.end());
-        protein_idx++;
 
-        for (const auto& pt : finalPoints) {
-            int idx = pt.y * screen_width + pt.x;
-            if (pt.z < screenPixels[idx].depth) {
-                screenPixels[idx].depth = pt.z;
-                screenPixels[idx].pixel = pt.pixel;
-                screenPixels[idx].color_id = pt.color_id;
-            }
+            assign_colors_to_points(chainPoints, protein_idx);
+            finalPoints.insert(finalPoints.end(), chainPoints.begin(), chainPoints.end());
+        }
+
+        protein_idx++;
+    }
+
+    // 화면에 점 출력
+    for (const auto& pt : finalPoints) {
+        int idx = pt.y * screen_width + pt.x;
+        if (pt.z < screenPixels[idx].depth) {
+            screenPixels[idx].depth = pt.z;
+            screenPixels[idx].pixel = pt.pixel;
+            screenPixels[idx].color_id = pt.color_id;
         }
     }
 }
+
+// 체인별 z 정규화 후 depth 문자 반환
+char Screen::getPixelCharFromDepthNormalized(float z, float z_min, float z_max) {
+    float ratio = (z - z_min) / (z_max - z_min);
+    if (ratio < 0.2f) return '#';
+    else if (ratio < 0.4f) return 'O';
+    else if (ratio < 0.6f) return '*';
+    else if (ratio < 0.8f) return '+';
+    else return '.';
+}
+
 
 void Screen::print_screen() {
     clear();  // ncurses 화면 초기화
