@@ -62,7 +62,14 @@ public:
     void do_shift(float* shift_mat);
 
     const BoundingBox& get_bounding_box() const { return bounding_box; }
-    void set_bounding_box(const BoundingBox& bb) { bounding_box = bb; }
+    void set_scale(float cx_, float cy_, float cz_, float scale_) { 
+        cx = cx_;
+        cy = cy_;
+        cz = cz_;
+        scale = scale_;
+    }
+    float get_scaled_min_z() { return (bounding_box.min_z - cz) * scale; }
+    float get_scaled_max_z() { return (bounding_box.max_z - cz) * scale; }
 
 private:
     void set_bbox_pdb(const std::string& in_file);
@@ -90,6 +97,7 @@ private:
     bool show_structure;
 
     BoundingBox bounding_box;
+    float cx, cy, cz, scale;
 
     StructureMaker structureMaker;
 };

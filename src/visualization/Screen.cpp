@@ -33,8 +33,15 @@ void Screen::normalize_proteins(){
         global_bb = global_bb + bb; // + 연산자 오버로드를 통한 통합
     }
 
+    float cx = 0.5f * (global_bb.min_x + global_bb.max_x);
+    float cy = 0.5f * (global_bb.min_y + global_bb.max_y);
+    float cz = 0.5f * (global_bb.min_z + global_bb.max_z);
+    float max_ext = std::max(global_bb.max_x - global_bb.min_x, global_bb.max_y - global_bb.min_y);
+    max_ext = std::max(max_ext, global_bb.max_z - global_bb.min_z);
+    float scale = (max_ext > 0.f) ? (2.0f / max_ext) : 1.0f;  // 예: [-1,1]에 맞춤
+
     for (auto* p : data) {
-        p->set_bounding_box(global_bb);
+        p->set_scale(cx, cy, cz, scale);
         p->load_data();
     }
 }
@@ -108,27 +115,34 @@ void Screen::set_utmatrix(const std::string& utmatrix) {
     
 }
 
-char Screen::getPixelCharFromDepth(float z) {
-    if (z < 9.30) return '#';
-    else if (z < 9.50) return '@';
-    else if (z < 9.70) return '%';
-    else if (z < 9.90) return '*';
-    else if (z < 10.10) return '^';
-    else if (z < 10.30) return '-';
+char Screen::getPixelCharFromDepth(float z, float min_z, float max_z) {
+    z -= focal_offset;
+    float zn = (z - min_z) / (max_z - min_z);
+
+    if (zn < 0.08f) return '#';
+    else if (zn < 0.18f) return '@';
+    else if (zn < 0.32f) return '%';
+    else if (zn < 0.50f) return '*';
+    else if (zn < 0.70f) return '^';
+    else if (zn < 0.85f) return '-';
     else return '.';
 }
 
 void Screen::drawLine(std::vector<RenderPoint>& points,
-                      int x1, int y1, int x2, int y2,
-                      float z1, float z2, char chainID, char structure) {
+                      int x1, int x2, 
+                      int y1, int y2,
+                      float z1, float z2, 
+                      char chainID, char structure,
+                      float min_z, float max_z) {
     int dx = x2 - x1;
     int dy = y2 - y1;
+    int dz = z2 - z1;
     int steps = std::max(abs(dx), abs(dy));
     if (steps == 0) steps = 1;
 
     float xIncrement = (float)dx / steps;
     float yIncrement = (float)dy / steps;
-    float zIncrement = (z2 - z1) / steps;
+    float zIncrement = (float)dz / steps;
 
     float x = x1;
     float y = y1;
@@ -139,7 +153,7 @@ void Screen::drawLine(std::vector<RenderPoint>& points,
         int iy = static_cast<int>(y);
 
         if (ix >= 0 && ix < screen_width && iy >= 0 && iy < screen_height) {
-            points.push_back({ix, iy, z, getPixelCharFromDepth(z), chainID, structure});
+            points.push_back({ix, iy, z, getPixelCharFromDepth(z, min_z, max_z), chainID, structure});
         }
 
         x += xIncrement;
@@ -212,7 +226,6 @@ void Screen::project() {
     for (size_t i = 0; i < data.size(); i++) {
         fovRads.push_back(1.0 / tan((FOV / zoom_level[i]) * 0.5 / 180.0 * PI));
     }
-    float focal_offset = 10.0f;
 
     std::vector<RenderPoint> finalPoints;
     std::vector<RenderPoint> chainPoints;
@@ -243,11 +256,16 @@ void Screen::project() {
                 int screenY = (int)((1.0 - projectedY) * 0.5 * screen_height);
 
                 if (prevScreenX != -1 && prevScreenY != -1) {
-                    drawLine(chainPoints, prevScreenX, prevScreenY, screenX, screenY, prevZ, z, chainID, structure);
+                    drawLine(chainPoints, 
+                             prevScreenX, screenX, 
+                             prevScreenY, screenY, 
+                             prevZ, z, 
+                             chainID, structure, 
+                             target->get_scaled_min_z(), target->get_scaled_max_z());
                 }
                 
                 if (screenX >= 0 && screenX < screen_width && screenY >= 0 && screenY < screen_height) {
-                    chainPoints.push_back({screenX, screenY, z, getPixelCharFromDepth(z), chainID, structure});
+                    chainPoints.push_back({screenX, screenY, z, getPixelCharFromDepth(z, target->get_scaled_min_z(), target->get_scaled_max_z()), chainID, structure});
                 }
                 prevScreenX = screenX;
                 prevScreenY = screenY;
