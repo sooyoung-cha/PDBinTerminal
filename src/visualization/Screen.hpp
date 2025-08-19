@@ -28,7 +28,7 @@ public:
     ~Screen();
     bool handle_input();
     bool isSame = true;
-    char getPixelCharFromDepth(float z);
+    char getPixelCharFromDepth(float z, float min_z, float max_z);
     void set_protein(const std::string& in_file, const std::string& target_chains, const bool& show_structure);
     void normalize_proteins();
     void set_utmatrix(int protein_idx, const std::string& umatrix, const std::string& tmatrix);
@@ -36,12 +36,16 @@ public:
     void drawScreen();
     void assign_colors_to_points(std::vector<RenderPoint>& points, int protein_idx);
     void drawLine(std::vector<RenderPoint>& points,
-                  int x1, int y1, int x2, int y2,
-                  float z1, float z2, char chainID, char structure);
+                  int x1, int x2, 
+                  int y1, int y2,
+                  float z1, float z2, 
+                  char chainID, char structure,
+                  float min_z, float max_z);
     // void drawAlphHelix(std::vector<RenderPoint>& points);
     // void drawBetaSheet(std::vector<RenderPoint>& points);
 
 private:
+    float focal_offset = 10.0f;
     int structNum = -1;
     int screen_width;
     int screen_height;
