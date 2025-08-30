@@ -87,6 +87,9 @@ Parameters::Parameters(int argc, char* argv[]) {
             else if (!strcmp(argv[i], "-s") || !strcmp(argv[i], "--structure")) {
                 show_structure = true;
             }
+            else if (!strcmp(argv[i], "-p") || !strcmp(argv[i], "--predict")) {
+                predict_structure = true;
+            }
             else if (!strcmp(argv[i], "-ut") || !strcmp(argv[i], "--utmatrix")) {
                 if (i + 1 < argc) {
                     utmatrix = argv[++i];

@@ -12,6 +12,7 @@ namespace fs = std::filesystem;
 class Parameters{
     private:
         bool show_structure = false;
+        bool predict_structure = false;
         bool arg_okay = true;
         int width = 3;
         int height = 3;

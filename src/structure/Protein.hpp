@@ -10,6 +10,7 @@
 #include <limits>
 #include "Atom.hpp"
 #include "StructureMaker.hpp"
+#include "SSPredictor.hpp"
 
 struct BoundingBox {
     float min_x = std::numeric_limits<float>::max();
@@ -42,7 +43,7 @@ struct BoundingBox {
 
 class Protein {
 public:
-    Protein(const std::string& in_file, const std::string& target_chains, const bool& show_structure);
+    Protein(const std::string& in_file_, const std::string& target_chains_, const bool& show_structure_);
     ~Protein();
 
     // 데이터 접근자
@@ -72,33 +73,43 @@ public:
     float get_scaled_max_z() { return (bounding_box.max_z - cz) * scale; }
 
 private:
-    void set_bbox_pdb(const std::string& in_file);
-    void set_ss_info_pdb(const std::string& in_file, 
-                         const std::string& target_chains,
-                         std::vector<std::tuple<char, int, char, int, char>>& ss_info);
-    void set_init_atoms_pdb(const std::string& in_file, 
-                            const std::string& target_chains,
-                            std::vector<std::tuple<char, int, char, int, char>> ss_info);
 
-    void set_bbox_cif(const std::string& in_file);
-    void set_ss_info_cif(const std::string& in_file, 
-                         const std::string& target_chains,
-                         std::vector<std::tuple<char, int, char, int, char>>& ss_info);
-    void set_init_atoms_cif(const std::string& in_file, 
-                            const std::string& target_chains,
-                            std::vector<std::tuple<char, int, char, int, char>> ss_info);
+    bool is_ss_in_cif(const std::string& in_file);
+    void load_bbox_pdb(const std::string& in_file);
+    void load_ss_info_pdb(const std::string& in_file, 
+                          const std::string& target_chains,
+                          std::vector<std::tuple<char, int, char, int, char>>& ss_info);
+    void load_init_atoms_pdb(const std::string& in_file, 
+                             const std::string& target_chains,
+                             std::vector<std::tuple<char, int, char, int, char>> ss_info);
+    void load_init_atoms_pdb(const std::string& in_file, 
+                             const std::string& target_chains);
+
+    bool is_ss_in_pdb(const std::string& in_file);
+    void load_bbox_cif(const std::string& in_file);
+    void load_ss_info_cif(const std::string& in_file, 
+                          const std::string& target_chains,
+                          std::vector<std::tuple<char, int, char, int, char>>& ss_info);
+    void load_init_atoms_cif(const std::string& in_file, 
+                             const std::string& target_chains,
+                             std::vector<std::tuple<char, int, char, int, char>> ss_info);
+    void load_init_atoms_cif(const std::string& in_file, 
+                             const std::string& target_chains);
+    
+    void pred_ss_info(std::map<char, std::vector<Atom>>& init_atoms);
+
     // 멤버 데이터
     std::map<char, std::vector<Atom>> init_atoms;
-    std::map<char, std::vector<Atom>> ss_atoms;
     std::map<char, std::vector<Atom>> screen_atoms;
 
     std::string in_file;
     std::string target_chains;
-    bool show_structure;
+    bool show_structure, predict_structure;
 
     BoundingBox bounding_box;
     float cx, cy, cz, scale;
 
     StructureMaker structureMaker;
+    SSPredictor ssPredictor;
 };
 

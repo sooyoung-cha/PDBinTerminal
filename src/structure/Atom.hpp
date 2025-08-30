@@ -7,9 +7,9 @@ struct Atom {
     float z;
     char structure='x';        // 'x' : default, 'h' : helix, 's' : sheet
 
-    Atom(float x_, float y_, float z_) : x(x_), y(y_), z(z_), structure{'*'} {}
+    Atom(float x_, float y_, float z_) : x(x_), y(y_), z(z_), structure{'x'} {}
     Atom(float x_, float y_, float z_, char c) : x(x_), y(y_), z(z_), structure{c} {}
-    Atom() : x(0), y(0), z(0), structure{'*'} {}
+    Atom() : x(0), y(0), z(0), structure{'x'} {}
 
     void set_position(float x_, float y_, float z_) {
         x = x_;
@@ -27,8 +27,10 @@ struct Atom {
     }
 
     void set_structure(char c){
-        structure = c;
-        return;
+        if (c == 'x' || c == 'h' || c == 's'){
+            structure = c;
+            return;
+        }
     }
 
     char get_structure() const {
