@@ -27,7 +27,7 @@ struct Atom {
     }
 
     void set_structure(char c){
-        if (c == 'x' || c == 'h' || c == 's'){
+        if (c == 'x' || c == 'H' || c == 'S'){
             structure = c;
             return;
         }

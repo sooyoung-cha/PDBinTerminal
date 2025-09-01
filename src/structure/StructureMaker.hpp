@@ -17,6 +17,9 @@ public:
     void computeHelixAxis(const std::vector<Atom>& helix, float (&center)[3], float (&axis)[3]);
     std::vector<std::vector<Atom>> extractHelixSegments(const Atom* atoms, int num_atoms);
 private:
+    float radius = 0.08f;
+    int circle_steps = 8; 
+    int width = 2;
 };
 
 

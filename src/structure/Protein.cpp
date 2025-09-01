@@ -18,7 +18,6 @@ Protein::Protein(const std::string& in_file_, const std::string& target_chains_,
 Protein::~Protein() {
 }
 
-
 std::map<char, std::vector<Atom>>& Protein::get_atoms() {
     return screen_atoms;  
 }
@@ -45,6 +44,26 @@ int Protein::get_length() {
     return total_atoms;
 }
 
+float Protein::get_scaled_min_z() { 
+    return (bounding_box.min_z - cz) * scale; 
+}
+
+float Protein::get_scaled_max_z() { 
+    return (bounding_box.max_z - cz) * scale; 
+}
+
+BoundingBox& Protein::get_bounding_box() {
+     return bounding_box; 
+}
+
+void Protein::set_scale(float cx_, float cy_, float cz_, float scale_) { 
+    cx = cx_;
+    cy = cy_;
+    cz = cz_;
+    scale = scale_;
+    ssPredictor.set_scale(1.0f/scale);
+}    
+
 // pdb file
 bool Protein::is_ss_in_pdb(const std::string& in_file){
     std::ifstream openFile(in_file);
@@ -66,6 +85,7 @@ bool Protein::is_ss_in_pdb(const std::string& in_file){
 }
 
 void Protein::load_bbox_pdb(const std::string& in_file) {
+    std::cout << "  calculate protein bounding box\n";    
     std::ifstream openFile(in_file);
     if (!openFile.is_open()) {
         std::cerr << "Error opening file: " << in_file << std::endl;
@@ -95,7 +115,8 @@ void Protein::load_bbox_pdb(const std::string& in_file) {
 
 void Protein::load_init_atoms_pdb(const std::string& in_file, 
                                   const std::string& target_chains,
-                                  const std::vector<std::tuple<char, int, char, int, char>> ss_info) {
+                                  const std::vector<std::tuple<char, int, char, int, char>>& ss_info) {
+    std::cout << "  load atoms from file with structure\n";    
     std::ifstream openFile(in_file);
 
     std::string line;
@@ -131,6 +152,7 @@ void Protein::load_init_atoms_pdb(const std::string& in_file,
 
 void Protein::load_init_atoms_pdb(const std::string& in_file, 
                                   const std::string& target_chains) {
+    std::cout << "  load atoms from file\n";    
     std::ifstream openFile(in_file);
 
     std::string line;
@@ -159,6 +181,7 @@ void Protein::load_init_atoms_pdb(const std::string& in_file,
 void Protein::load_ss_info_pdb(const std::string& in_file,
                               const std::string& target_chains,
                               std::vector<std::tuple<char, int, char, int, char>>& ss_info) {
+    std::cout << "  load structures from file\n";    
     std::ifstream openFile(in_file);
     if (!openFile.is_open()) {
         std::cerr << "Error opening file: " << in_file << std::endl;
@@ -176,6 +199,9 @@ void Protein::load_ss_info_pdb(const std::string& in_file,
             end_chainID = line[32];
             end = std::stoi(line.substr(33, 4));
             struct_type = 'S'; // SHEET → 'S'
+            if (target_chains == "-" || target_chains.find(start_chainID) != std::string::npos) {
+                ss_info.emplace_back(start_chainID, start, end_chainID, end, struct_type);
+            }
         }
         else if (line.substr(0, 5) == "HELIX") { // HELIX (α-helix)
             start_chainID = line[19];
@@ -183,9 +209,9 @@ void Protein::load_ss_info_pdb(const std::string& in_file,
             end_chainID = line[31];
             end = std::stoi(line.substr(33, 4));
             struct_type = 'H'; // HELIX → 'H'
-        }
-        if (target_chains == "-" || target_chains.find(start_chainID) != std::string::npos) {
-            ss_info.emplace_back(start_chainID, start, end_chainID, end, struct_type);
+            if (target_chains == "-" || target_chains.find(start_chainID) != std::string::npos) {
+                ss_info.emplace_back(start_chainID, start, end_chainID, end, struct_type);
+            }
         }
     }
     openFile.close();
@@ -212,6 +238,7 @@ bool Protein::is_ss_in_cif(const std::string& in_file){
 }
 
 void Protein::load_bbox_cif(const std::string& in_file) {
+    std::cout << "  calculate protein bounding box\n";
 
     std::ifstream file(in_file);
     if (!file.is_open()) {
@@ -269,7 +296,8 @@ void Protein::load_bbox_cif(const std::string& in_file) {
 
 void Protein::load_init_atoms_cif(const std::string& in_file,
                                  const std::string& target_chains,
-                                 const std::vector<std::tuple<char, int, char, int, char>> ss_info) {
+                                 const std::vector<std::tuple<char, int, char, int, char>>& ss_info) {
+    std::cout << "  load structures from file [with structure]\n";
 
     std::ifstream file(in_file);
     if (!file.is_open()) {
@@ -351,6 +379,7 @@ void Protein::load_init_atoms_cif(const std::string& in_file,
 
 void Protein::load_init_atoms_cif(const std::string& in_file,
                                  const std::string& target_chains) {
+    std::cout << "  load atoms from file\n";    
 
     std::ifstream file(in_file);
     if (!file.is_open()) {
@@ -428,6 +457,7 @@ void Protein::load_init_atoms_cif(const std::string& in_file,
 void Protein::load_ss_info_cif(const std::string& in_file, 
                                const std::string& target_chains,
                                std::vector<std::tuple<char, int, char, int, char>>& ss_info) {
+    std::cout << "  load structures from file\n";    
     auto parse_section = [&](const std::string& keyword, char struct_type) {
         std::ifstream file(in_file);
         if (!file.is_open()) {
@@ -517,11 +547,6 @@ void Protein::load_ss_info_cif(const std::string& in_file,
     parse_section("_struct_sheet_range.", 'S');      // 시트
 }
 
-
-void Protein::pred_ss_info(std::map<char, std::vector<Atom>>& init_atoms) {
-    ssPredictor.run(init_atoms);
-}
-
 std::ostream& operator<<(std::ostream& os, const std::tuple<char, int, char, int, char>& t) {
     os << "("
        << std::get<0>(t) << ", "
@@ -536,14 +561,15 @@ void Protein::load_data() {
     // pdb
     if (in_file.find(".pdb") != std::string::npos) {
         if (show_structure){
-            if (is_ss_in_pdb(in_file)){
+            // if (is_ss_in_pdb(in_file)){
+            if (false){
                 std::vector<std::tuple<char, int, char, int, char>> ss_info;
                 load_ss_info_pdb(in_file, target_chains, ss_info);
                 load_init_atoms_pdb(in_file, target_chains, ss_info);
             }
             else{
                 load_init_atoms_pdb(in_file, target_chains);
-                pred_ss_info(init_atoms);
+                ssPredictor.run(init_atoms);
             }
         }
         else{
@@ -564,14 +590,15 @@ void Protein::load_data() {
     // cif
     else if (in_file.find(".cif") != std::string::npos){
         if (show_structure){
-            if (is_ss_in_cif(in_file)){
+            // if (is_ss_in_cif(in_file)){
+            if (false){
                 std::vector<std::tuple<char, int, char, int, char>> ss_info;
                 load_ss_info_cif(in_file, target_chains, ss_info);
                 load_init_atoms_cif(in_file, target_chains, ss_info);
             }
             else{
                 load_init_atoms_cif(in_file, target_chains);
-                pred_ss_info(init_atoms);
+                ssPredictor.run(init_atoms);
             }
         }
         else{

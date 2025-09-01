@@ -134,5 +134,6 @@ void Parameters::print_args() {
     cout << "  height: " << height << endl;
     cout << "  utmatrix: " << utmatrix << endl;
     cout << "  show_structure: " << show_structure << endl;
+    cout << "\n";
     return;
 }

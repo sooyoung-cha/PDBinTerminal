@@ -6,7 +6,7 @@ std::vector<char> SSPredictor::compute_breaks(const std::vector<Atom>& A) {
     std::vector<char> br(n, 0);
     if (n < 2) return br;
     for (size_t i = 0; i + 1 < n; ++i) {
-        if (dist(A[i], A[i+1]) > break_gap) {
+        if (dist(A[i], A[i+1]) * scale > break_gap) {
             br[i] = 1; // i와 i+1 사이가 끊김
         }
     }
@@ -30,24 +30,21 @@ void SSPredictor::vote(const std::vector<Atom>& A,
     for (size_t i = 0; i + 3 < n; ++i) {
         if (!same_segment(i, i+3)) continue;
 
-        float d13 = dist(A[i], A[i+2]);
-        float d14 = dist(A[i], A[i+3]);
+        float d13 = dist(A[i], A[i+2]) * scale;
+        float d14 = dist(A[i], A[i+3]) * scale;
         float tau = torsion_deg(A[i], A[i+1], A[i+2], A[i+3]);
         float at = std::fabs(tau);
 
         int h = 0, e = 0;
 
-        // 헬릭스 득표: 거리 + |τ|
         if (d13 >= d13_helix_min && d13 <= d13_helix_max) h++;
         if (d14 >= d14_helix_min && d14 <= d14_helix_max) h++;
         if (at >= tors_helix_abs_min && at <= tors_helix_abs_max) h++;
 
-        // 시트 득표: 거리 + |τ| 큼
         if (d13 >= d13_beta_min) e++;
         if (d14 >= d14_beta_min) e++;
         if (at >= tors_beta_abs_min) e++;
 
-        // 득표 반영: 윈도 중심부에 가중(보수적으로 i+1,i+2)
         if (h >= 2) {
             h_score[i+1] += 1;
             h_score[i+2] += 1;
@@ -66,8 +63,8 @@ std::vector<char> SSPredictor::label_from_scores(const std::vector<int>& h_score
     std::vector<char> lab(n, 'x'); // 기본값
     for (size_t i = 0; i < n; ++i) {
         int h = h_score[i], e = e_score[i];
-        if (h >= vote_threshold && h > e) lab[i] = 'h';
-        else if (e >= vote_threshold && e > h) lab[i] = 's';
+        if (h >= vote_threshold && h > e) lab[i] = 'H';
+        else if (e >= vote_threshold && e > h) lab[i] = 'S';
         else lab[i] = 'x';
     }
     return lab;
@@ -103,7 +100,7 @@ void SSPredictor::smooth_labels(const std::vector<char>& is_break,
     // 1) 고립 섬 제거 (크기 <= smooth_island)
     int K = smooth_island;
     if (K >= 1) {
-        for (char t : {'h', 's'}) {
+        for (char t : {'H', 'S'}) {
             size_t i = 0;
             while (i < n) {
                 if (lab[i] != t) { ++i; continue; }
@@ -126,14 +123,14 @@ void SSPredictor::smooth_labels(const std::vector<char>& is_break,
     }
 
     // 2) 최소 길이 필터
-    squash_short_segments(lab, 'h', helix_min_len);
-    squash_short_segments(lab, 's',  beta_min_len);
+    squash_short_segments(lab, 'H', helix_min_len);
+    squash_short_segments(lab, 'S',  beta_min_len);
 
     // 3) 단절점 양옆 정리: 단절 경계에 단일 라벨이 걸쳐 있으면 쪼개기(이미 구간화로 대부분 해결)
     // 필요시 추가 로직 가능.
 }
 
-void SSPredictor::runOnChain(std::vector<Atom>& chain_atoms) {
+void SSPredictor::run_chain(std::vector<Atom>& chain_atoms) {
     const size_t n = chain_atoms.size();
     if (n == 0) return;
 
@@ -155,8 +152,9 @@ void SSPredictor::runOnChain(std::vector<Atom>& chain_atoms) {
 }
 
 void SSPredictor::run(std::map<char, std::vector<Atom>>& atoms) {
+    std:: cout << "  predict structure\n";    
     for (auto& chain : atoms) {
         auto& chain_atoms = chain.second;
-        runOnChain(chain_atoms);
+        run_chain(chain_atoms);
     }
 }

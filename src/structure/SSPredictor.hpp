@@ -3,42 +3,34 @@
 #include <map>
 #include <cmath>
 #include <cstddef>
-#include "Atom.hpp"   // Protein.hpp는 필요 없음 (순환 include 위험)
+#include "Atom.hpp"  
 
 class SSPredictor {
 public:
-    // --- Tunable parameters (public: 필요 시 직접 수정) ---
-    // 거리 임계값(Å) — Cα 기반 간단 규칙
-    float d13_helix_min = 4.8f, d13_helix_max = 6.0f;  // |i - (i+2)|
-    float d14_helix_min = 4.8f, d14_helix_max = 6.0f;  // |i - (i+3)|
-    float d13_beta_min  = 6.4f;                        // beta면 |i - (i+2)| 큼
-    float d14_beta_min  = 8.5f;                        // beta면 |i - (i+3)| 큼
+    float scale = 1.0f;
+    float d13_helix_min = 4.8f, d13_helix_max = 6.0f; 
+    float d14_helix_min = 4.8f, d14_helix_max = 6.0f; 
+    float d13_beta_min  = 6.4f;                       
+    float d14_beta_min  = 8.5f;                     
 
-    // 가상 torsion |τ|(deg)
-    float tors_helix_abs_min = 35.0f, tors_helix_abs_max = 75.0f;   // helix 부근
-    float tors_beta_abs_min  = 110.0f;                               // beta는 큼(110° 이상)
+    float tors_helix_abs_min = 35.0f, tors_helix_abs_max = 75.0f;  
+    float tors_beta_abs_min  = 110.0f;                              
 
-    // 세그먼트 최소 길이
     int   helix_min_len = 4;
     int   beta_min_len  = 3;
 
-    // 체인 단절(Å): 일반 Cα-Cα ~3.8Å, 이보다 훨씬 크면 끊긴 걸로
     float break_gap = 4.8f;
 
-    // 점수 임계
+
     int   vote_threshold = 2;
 
-    // 스무딩: 고립 섬 제거 크기
     int   smooth_island = 1;
 
-    // --- ctor ---
-    SSPredictor() = default;
-
-    // Protein의 각 체인 vector<Atom>을 직접 업데이트 (structure: 'h','s','x')
     void run(std::map<char, std::vector<Atom>>& atoms);
 
-    // 체인 단위로 사용하고 싶을 때
-    void runOnChain(std::vector<Atom>& chain_atoms);
+    void run_chain(std::vector<Atom>& chain_atoms);
+
+    void set_scale(float scale_) { scale = scale_; }
 
 private:
     static inline float dist(const Atom& a, const Atom& b) {
@@ -65,7 +57,6 @@ private:
         if (n > 1e-8f) { v[0]/=n; v[1]/=n; v[2]/=n; }
     }
 
-    // Cα 가상 torsion τ(a,b,c,d) in degrees
     static float torsion_deg(const Atom& a, const Atom& b, const Atom& c, const Atom& d) {
         float b1[3], b2[3], b3[3];
         sub(b, a, b1); sub(c, b, b2); sub(d, c, b3);

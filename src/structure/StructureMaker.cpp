@@ -90,6 +90,7 @@ void StructureMaker::computeHelixAxis(const std::vector<Atom>& helix, float (&ce
 
 void StructureMaker::calculate_ss_points(std::map<char, std::vector<Atom>>& init_atoms,
                                          std::map<char, std::vector<Atom>>& ss_atoms) {
+    std::cout << "  apply structure\n";
     ss_atoms.clear();
 
     for (auto& [chainID, atoms] : init_atoms) {
@@ -115,9 +116,7 @@ void StructureMaker::calculate_ss_points(std::map<char, std::vector<Atom>>& init
                     float dz = segment.back().z - segment.front().z;
                     float length = std::sqrt(dx * dx + dy * dy + dz * dz);
 
-                    const float radius = 0.10f;
                     const int steps = std::min<int>(8, (end - start));     
-                    const int circle_steps = 8; 
 
                     float up[3] = {0, 0, 1};
                     if (std::abs(axis[2]) > 0.99f) { up[0] = 1; up[2] = 0; }
@@ -188,7 +187,6 @@ void StructureMaker::calculate_ss_points(std::map<char, std::vector<Atom>>& init
                 for (int j = 0; j < 3; ++j) n1[j] /= n1_norm;
 
                 // 리본 너비 벡터 n1 방향으로 이동
-                const int width = 2;
                 int line_steps = std::max<int>(2, static_cast<int>(len / 0.05f));
 
                 for (int step = -width; step <= width; ++step) {

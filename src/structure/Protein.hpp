@@ -52,25 +52,19 @@ public:
     int get_chain_length(char chainID);
     int get_length();
 
-    // 초기화
+    float get_scaled_min_z();
+    float get_scaled_max_z();
+    BoundingBox& get_bounding_box();
+    void set_scale(float cx_, float cy_, float cz_, float scale_);\
 
+    // 초기화    
     void load_data();
-
+    
     // 변형
     void set_rotate(int x_rotate, int y_rotate, int z_rotate);
     void set_shift(float shift_x, float shift_y, float shift_z);
     void do_rotation(float* rotate_mat);
     void do_shift(float* shift_mat);
-
-    const BoundingBox& get_bounding_box() const { return bounding_box; }
-    void set_scale(float cx_, float cy_, float cz_, float scale_) { 
-        cx = cx_;
-        cy = cy_;
-        cz = cz_;
-        scale = scale_;
-    }
-    float get_scaled_min_z() { return (bounding_box.min_z - cz) * scale; }
-    float get_scaled_max_z() { return (bounding_box.max_z - cz) * scale; }
 
 private:
 
@@ -81,7 +75,7 @@ private:
                           std::vector<std::tuple<char, int, char, int, char>>& ss_info);
     void load_init_atoms_pdb(const std::string& in_file, 
                              const std::string& target_chains,
-                             std::vector<std::tuple<char, int, char, int, char>> ss_info);
+                             const std::vector<std::tuple<char, int, char, int, char>>& ss_info);
     void load_init_atoms_pdb(const std::string& in_file, 
                              const std::string& target_chains);
 
@@ -92,7 +86,7 @@ private:
                           std::vector<std::tuple<char, int, char, int, char>>& ss_info);
     void load_init_atoms_cif(const std::string& in_file, 
                              const std::string& target_chains,
-                             std::vector<std::tuple<char, int, char, int, char>> ss_info);
+                             const std::vector<std::tuple<char, int, char, int, char>>& ss_info);
     void load_init_atoms_cif(const std::string& in_file, 
                              const std::string& target_chains);
     

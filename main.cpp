@@ -13,22 +13,23 @@ int main(int argc, char* argv[]) {
     }
     params.print_args();
 
-    initscr(); // ncurses 초기화
-    cbreak();  // 특수 키 입력을 받도록 설정
-    noecho();  // 입력한 문자를 화면에 표시하지 않음
-
+    
     Screen screen(params.get_width(), params.get_height(), params.get_show_structure(), params.get_mode()); 
-
+    
     for (int i = 0; i < params.get_in_file().size(); i++){
         screen.set_protein(params.get_in_file(i), params.get_chains(i), params.get_show_structure());
     }
-
+    
     screen.normalize_proteins();
-
+    
     if (params.get_utmatrix() != ""){
         screen.set_utmatrix(params.get_utmatrix());
     }
-
+    
+    initscr(); // ncurses 초기화
+    cbreak();  // 특수 키 입력을 받도록 설정
+    noecho();  // 입력한 문자를 화면에 표시하지 않음
+    
     bool run = true;
     while(run) {
         screen.drawScreen();
