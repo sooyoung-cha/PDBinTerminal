@@ -561,8 +561,7 @@ void Protein::load_data() {
     // pdb
     if (in_file.find(".pdb") != std::string::npos) {
         if (show_structure){
-            // if (is_ss_in_pdb(in_file)){
-            if (false){
+            if (is_ss_in_pdb(in_file)){
                 std::vector<std::tuple<char, int, char, int, char>> ss_info;
                 load_ss_info_pdb(in_file, target_chains, ss_info);
                 load_init_atoms_pdb(in_file, target_chains, ss_info);
@@ -590,8 +589,7 @@ void Protein::load_data() {
     // cif
     else if (in_file.find(".cif") != std::string::npos){
         if (show_structure){
-            // if (is_ss_in_cif(in_file)){
-            if (false){
+            if (is_ss_in_cif(in_file)){
                 std::vector<std::tuple<char, int, char, int, char>> ss_info;
                 load_ss_info_cif(in_file, target_chains, ss_info);
                 load_init_atoms_cif(in_file, target_chains, ss_info);
