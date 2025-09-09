@@ -19,7 +19,6 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < params.get_in_file().size(); i++){
         screen.set_protein(params.get_in_file(i), params.get_chains(i), params.get_show_structure());
     }
-    std::cout<<"HI"<<std::endl;
     screen.set_tmatrix();
     
     if (params.get_utmatrix() != ""){
