@@ -30,8 +30,9 @@ public:
     bool isSame = true;
     char getPixelCharFromDepth(float z, float min_z, float max_z);
     void set_protein(const std::string& in_file, const std::string& target_chains, const bool& show_structure);
-    void normalize_proteins();
-    void set_utmatrix(const std::string& utmatrix);
+    void normalize_proteins(const std::string& utmatrix);
+    void set_tmatrix();
+    void set_utmatrix(const std::string& utmatrix, bool onlyU);
     void set_zoom_level(float zoom);
     void drawScreen();
     void assign_colors_to_points(std::vector<RenderPoint>& points, int protein_idx);
@@ -50,11 +51,13 @@ private:
     int screen_width;
     int screen_height;
     bool screen_show_structure;
+    bool yesUT = false;
     std::string screen_mode;
     float aspect_ratio;
     std::vector<ScreenPixel> screenPixels;  
     std::vector<Protein*> data;  
     std::vector<float> zoom_level;
+    float ** vectorpointer;
     BoundingBox global_bb;
 
     std::unordered_map<char, int> chain_colors;

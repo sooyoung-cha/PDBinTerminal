@@ -115,7 +115,8 @@ void Protein::load_bbox_pdb(const std::string& in_file) {
 
 void Protein::load_init_atoms_pdb(const std::string& in_file, 
                                   const std::string& target_chains,
-                                  const std::vector<std::tuple<char, int, char, int, char>>& ss_info) {
+                                  const std::vector<std::tuple<char, int, char, int, char>>& ss_info, 
+                                 float * vectorpointers , bool yesUT) {
     std::cout << "  load atoms from file with structure\n";    
     std::ifstream openFile(in_file);
 
@@ -130,10 +131,20 @@ void Protein::load_init_atoms_pdb(const std::string& in_file,
                 float z = std::stof(line.substr(46, 8));
 
                 // ✅ 좌표 정규화 ([-1, 1] 범위로 조정)
-                x = (x - cx) * scale;
-                y = (y - cy) * scale;
-                z = (z - cz) * scale;
+                if (yesUT == false) {
+                    x = (x - cx) * scale;
+                    y = (y - cy) * scale;
+                    z = (z - cz) * scale;
+                } else {
+                    // x = (x + vectorpointers[0]- cx) * scale;
+                    // y = (y + vectorpointers[0]- cy) * scale;
+                    // z = (z + vectorpointers[0]- cz) * scale;
 
+                    x = (x - cx) * scale;
+                    y = (y - cy) * scale;
+                    z = (z - cz) * scale;
+                }
+                
                 Atom new_atom(x, y, z);
                 
                 for (const auto& [start_chainID, start, end_chainID, end, struct_type] : ss_info) {
@@ -151,7 +162,7 @@ void Protein::load_init_atoms_pdb(const std::string& in_file,
 }
 
 void Protein::load_init_atoms_pdb(const std::string& in_file, 
-                                  const std::string& target_chains) {
+                                  const std::string& target_chains, float * vectorpointers, bool yesUT) {
     std::cout << "  load atoms from file\n";    
     std::ifstream openFile(in_file);
 
@@ -164,10 +175,20 @@ void Protein::load_init_atoms_pdb(const std::string& in_file,
                 float x = std::stof(line.substr(30, 8));
                 float y = std::stof(line.substr(38, 8));
                 float z = std::stof(line.substr(46, 8));
+                if (yesUT == false) {
+                    x = (x - cx) * scale;
+                    y = (y - cy) * scale;
+                    z = (z - cz) * scale;
+                } else {
+                    // x = (x + vectorpointers[0]- cx) * scale;
+                    // y = (y + vectorpointers[0]- cy) * scale;
+                    // z = (z + vectorpointers[0]- cz) * scale;
 
-                x = (x - cx) * scale;
-                y = (y - cy) * scale;
-                z = (z - cz) * scale;
+                    x = (x - cx) * scale;
+                    y = (y - cy) * scale;
+                    z = (z - cz) * scale;
+                }
+                
                 Atom new_atom(x, y, z, 'x');
 
                 init_atoms[chainID].push_back(new_atom);
@@ -296,7 +317,7 @@ void Protein::load_bbox_cif(const std::string& in_file) {
 
 void Protein::load_init_atoms_cif(const std::string& in_file,
                                  const std::string& target_chains,
-                                 const std::vector<std::tuple<char, int, char, int, char>>& ss_info) {
+                                 const std::vector<std::tuple<char, int, char, int, char>>& ss_info, float * vectorpointers, bool yesUT) {
     std::cout << "  load structures from file [with structure]\n";
 
     std::ifstream file(in_file);
@@ -358,9 +379,22 @@ void Protein::load_init_atoms_cif(const std::string& in_file,
                 int id = std::stoi(tokens[id_idx]);
                 char chainID = tokens[chain_idx][0];
                 if (target_chains == "-" || target_chains.find(chainID) != std::string::npos)  {
-                    float atom_x = (x - cx) * scale;
-                    float atom_y = (y - cy) * scale;
-                    float atom_z = (z - cz) * scale;
+                    float atom_x;
+                    float atom_y;
+                    float atom_z;
+                    if (yesUT == false) {
+                        atom_x = (x - cx) * scale;
+                        atom_y = (y - cy) * scale;
+                        atom_z = (z - cz) * scale;
+                    } else {
+                        // atom_x = (x + vectorpointers[0]- cx) * scale;
+                        // atom_y = (y + vectorpointers[0]- cy) * scale;
+                        // atom_z = (z + vectorpointers[0]- cz) * scale;
+
+                        atom_x = (x - cx) * scale;
+                        atom_y = (y - cy) * scale;
+                        atom_z = (z - cz) * scale;
+                    }
                     
                     Atom new_atom(atom_x, atom_y, atom_z);
                     for (const auto& [start_chainID, start, end_chainID, end, struct_type] : ss_info) {
@@ -378,7 +412,7 @@ void Protein::load_init_atoms_cif(const std::string& in_file,
 }
 
 void Protein::load_init_atoms_cif(const std::string& in_file,
-                                 const std::string& target_chains) {
+                                 const std::string& target_chains, float * vectorpointers, bool yesUT) {
     std::cout << "  load atoms from file\n";    
 
     std::ifstream file(in_file);
@@ -437,12 +471,26 @@ void Protein::load_init_atoms_cif(const std::string& in_file,
                 float x = std::stof(tokens[x_idx]);
                 float y = std::stof(tokens[y_idx]);
                 float z = std::stof(tokens[z_idx]);
+                
                 int id = std::stoi(tokens[id_idx]);
                 char chainID = tokens[chain_idx][0];
                 if (target_chains == "-" || target_chains.find(chainID) != std::string::npos)  {
-                    float atom_x = (x - cx) * scale;
-                    float atom_y = (y - cy) * scale;
-                    float atom_z = (z - cz) * scale;
+                    float atom_x;
+                    float atom_y;
+                    float atom_z;
+                    if (yesUT == false) {
+                        atom_x = (x - cx) * scale;
+                        atom_y = (y - cy) * scale;
+                        atom_z = (z - cz) * scale;
+                    } else {
+                        // atom_x = (x + vectorpointers[0]- cx) * scale;
+                        // atom_y = (y + vectorpointers[0]- cy) * scale;
+                        // atom_z = (z + vectorpointers[0]- cz) * scale;
+
+                        atom_x = (x- cx) * scale;
+                        atom_y = (y- cy) * scale;
+                        atom_z = (z- cz) * scale;
+                    }
                     
                     Atom new_atom(atom_x, atom_y, atom_z, 'x');
                     
@@ -557,22 +605,22 @@ std::ostream& operator<<(std::ostream& os, const std::tuple<char, int, char, int
     return os;
 }
 
-void Protein::load_data() {    
+void Protein::load_data(float * vectorpointers, bool yesUT) {    
     // pdb
     if (in_file.find(".pdb") != std::string::npos) {
         if (show_structure){
             if (is_ss_in_pdb(in_file)){
                 std::vector<std::tuple<char, int, char, int, char>> ss_info;
                 load_ss_info_pdb(in_file, target_chains, ss_info);
-                load_init_atoms_pdb(in_file, target_chains, ss_info);
+                load_init_atoms_pdb(in_file, target_chains, ss_info, vectorpointers, yesUT);
             }
             else{
-                load_init_atoms_pdb(in_file, target_chains);
+                load_init_atoms_pdb(in_file, target_chains, vectorpointers, yesUT);
                 ssPredictor.run(init_atoms);
             }
         }
         else{
-            load_init_atoms_pdb(in_file, target_chains);
+            load_init_atoms_pdb(in_file, target_chains, vectorpointers, yesUT);
         }
 
         if (init_atoms.empty()) {
@@ -592,15 +640,15 @@ void Protein::load_data() {
             if (is_ss_in_cif(in_file)){
                 std::vector<std::tuple<char, int, char, int, char>> ss_info;
                 load_ss_info_cif(in_file, target_chains, ss_info);
-                load_init_atoms_cif(in_file, target_chains, ss_info);
+                load_init_atoms_cif(in_file, target_chains, ss_info, vectorpointers, yesUT);
             }
             else{
-                load_init_atoms_cif(in_file, target_chains);
+                load_init_atoms_cif(in_file, target_chains, vectorpointers, yesUT);
                 ssPredictor.run(init_atoms);
             }
         }
         else{
-            load_init_atoms_cif(in_file, target_chains);
+            load_init_atoms_cif(in_file, target_chains, vectorpointers, yesUT);
         }
 
         if (init_atoms.empty()) {

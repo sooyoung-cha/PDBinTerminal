@@ -27,29 +27,21 @@ void Screen::set_protein(const std::string& in_file, const std::string& target_c
     data.push_back(protein);
 }
 
-void Screen::normalize_proteins(){
-    for (auto* p : data) {
-        BoundingBox bb = p->get_bounding_box();
-        global_bb = global_bb + bb; // + 연산자 오버로드를 통한 통합
-    }
-
-    float cx = 0.5f * (global_bb.min_x + global_bb.max_x);
-    float cy = 0.5f * (global_bb.min_y + global_bb.max_y);
-    float cz = 0.5f * (global_bb.min_z + global_bb.max_z);
-    float max_ext = std::max(global_bb.max_x - global_bb.min_x, global_bb.max_y - global_bb.min_y);
-    max_ext = std::max(max_ext, global_bb.max_z - global_bb.min_z);
-    float scale = (max_ext > 0.f) ? (2.0f / max_ext) : 1.0f;  // 예: [-1,1]에 맞춤
-
-    for (auto* p : data) {
-        p->set_scale(cx, cy, cz, scale);
-        p->load_data();
+void Screen::set_tmatrix() {
+    size_t filenum = data.size();
+    vectorpointer = new float* [filenum];
+    for (int i = 0; i < filenum; i++) {
+        vectorpointer[i] = new float[3];
+        vectorpointer[i][0] = 0;
+        vectorpointer[i][1] = 0;
+        vectorpointer[i][2] = 0;
     }
 }
 
-void Screen::set_utmatrix(const std::string& utmatrix) {
+void Screen::set_utmatrix(const std::string& utmatrix, bool onlyU) {
+    yesUT = true;
     size_t filenum = data.size();
     float ** matrixpointer = new float*[filenum];
-    float ** vectorpointer = new float* [filenum];
     for (int i = 0; i < filenum; i++) {
         matrixpointer[i] = new float[9];
         for (int j = 0; j < 9; j++) {
@@ -59,10 +51,6 @@ void Screen::set_utmatrix(const std::string& utmatrix) {
                 matrixpointer[i][j] = 0;
             }
         }
-        vectorpointer[i] = new float[3];
-        vectorpointer[i][0] = 0;
-        vectorpointer[i][1] = 0;
-        vectorpointer[i][2] = 0;
     } 
     std::ifstream file(utmatrix);
     if (!file.is_open()) {
@@ -93,26 +81,49 @@ void Screen::set_utmatrix(const std::string& utmatrix) {
             std::string val;
             int count = 0;
             while (std::getline(mss, val, ',') && count < 9) {
-                matrixpointer[index][count++] = std::stod(val);
+                matrixpointer[index][count] = std::stod(val);
+                count++;
             }
         }
 
-        // {
-        //     std::istringstream mss(mat3Str);
-        //     std::string val;
-        //     int count = 0;
-        //     while (std::getline(mss, val, ',') && count < 3) {
-        //         vectorpointer[index][count++] = std::stod(val);
-        //     }
-        // }
+        {
+            std::istringstream mss(mat3Str);
+            std::string val;
+            int count = 0;
+            while (std::getline(mss, val, ',') && count < 3) {
+                vectorpointer[index][count] = std::stod(val);
+                count++;
+            }
+        }
     }
-
     file.close();
     for (size_t i=0; i < filenum; i++) {
         data[i]->do_rotation(matrixpointer[i]);
-        // data[i]->do_shift(vectorpointer[i]);
+        if(onlyU == 0) {
+            data[i]->do_shift(vectorpointer[i]);
+        }
     }
-    
+}
+
+void Screen::normalize_proteins(const std::string& utmatrix){
+    for (auto* p : data) {
+        BoundingBox bb = p->get_bounding_box();
+        global_bb = global_bb + bb; // + 연산자 오버로드를 통한 통합
+    }
+
+    float cx = 0.5f * (global_bb.min_x + global_bb.max_x);
+    float cy = 0.5f * (global_bb.min_y + global_bb.max_y);
+    float cz = 0.5f * (global_bb.min_z + global_bb.max_z);
+    float max_ext = std::max(global_bb.max_x - global_bb.min_x, global_bb.max_y - global_bb.min_y);
+    max_ext = std::max(max_ext, global_bb.max_z - global_bb.min_z);
+    float scale = (max_ext > 0.f) ? (2.0f / max_ext) : 1.0f;  // 예: [-1,1]에 맞춤
+
+    for (size_t i = 0; i < data.size(); i++) {
+        auto* p = data[i];
+        p->set_scale(cx, cy, cz, scale);
+        p->load_data(vectorpointer[i], yesUT);
+    }
+    set_utmatrix(utmatrix, 1);
 }
 
 char Screen::getPixelCharFromDepth(float z, float min_z, float max_z) {
@@ -234,12 +245,11 @@ void Screen::project() {
     int protein_idx = 0;
     for (size_t ii = 0; ii < data.size(); ii++) {
         Protein* target = data[ii];
+        chainPoints.clear();
         for (const auto& [chainID, chain_atoms] : target->get_atoms()) {
             if (chain_atoms.size() == 0) continue;
 
             int num_atoms = target->get_chain_length(chainID);
-            chainPoints.clear();
-
             int prevScreenX = -1, prevScreenY = -1;
             float prevZ = -1.0f;
 

@@ -58,7 +58,7 @@ public:
     void set_scale(float cx_, float cy_, float cz_, float scale_);\
 
     // 초기화    
-    void load_data();
+    void load_data(float * vectorpointers, bool yesUT);
     
     // 변형
     void set_rotate(int x_rotate, int y_rotate, int z_rotate);
@@ -75,9 +75,9 @@ private:
                           std::vector<std::tuple<char, int, char, int, char>>& ss_info);
     void load_init_atoms_pdb(const std::string& in_file, 
                              const std::string& target_chains,
-                             const std::vector<std::tuple<char, int, char, int, char>>& ss_info);
+                             const std::vector<std::tuple<char, int, char, int, char>>& ss_info, float * vectorpointers, bool yesUT);
     void load_init_atoms_pdb(const std::string& in_file, 
-                             const std::string& target_chains);
+                             const std::string& target_chains, float * vectorpointers, bool yesUT);
 
     bool is_ss_in_pdb(const std::string& in_file);
     void load_bbox_cif(const std::string& in_file);
@@ -86,9 +86,9 @@ private:
                           std::vector<std::tuple<char, int, char, int, char>>& ss_info);
     void load_init_atoms_cif(const std::string& in_file, 
                              const std::string& target_chains,
-                             const std::vector<std::tuple<char, int, char, int, char>>& ss_info);
+                             const std::vector<std::tuple<char, int, char, int, char>>& ss_info, float * vectorpointers, bool yesUT);
     void load_init_atoms_cif(const std::string& in_file, 
-                             const std::string& target_chains);
+                             const std::string& target_chains, float * vectorpointers, bool yesUT);
     
     void pred_ss_info(std::map<char, std::vector<Atom>>& init_atoms);
 
