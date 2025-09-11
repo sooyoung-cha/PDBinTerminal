@@ -117,7 +117,7 @@ void Protein::load_init_atoms_pdb(const std::string& in_file,
                                   const std::string& target_chains,
                                   const std::vector<std::tuple<char, int, char, int, char>>& ss_info, 
                                  float * vectorpointers , bool yesUT) {
-    std::cout << "  load atoms from file with structure\n";    
+    std::cout << "  load atoms from file\n";    
     std::ifstream openFile(in_file);
 
     std::string line;
