@@ -108,19 +108,16 @@ void Screen::set_utmatrix(const std::string& utmatrix, bool onlyU) {
 void Screen::normalize_proteins(const std::string& utmatrix){
     for (auto* p : data) {
         BoundingBox bb = p->get_bounding_box();
-        global_bb = global_bb + bb; // + 연산자 오버로드를 통한 통합
+        global_bb = global_bb + bb;
     }
 
-    float cx = 0.5f * (global_bb.min_x + global_bb.max_x);
-    float cy = 0.5f * (global_bb.min_y + global_bb.max_y);
-    float cz = 0.5f * (global_bb.min_z + global_bb.max_z);
     float max_ext = std::max(global_bb.max_x - global_bb.min_x, global_bb.max_y - global_bb.min_y);
     max_ext = std::max(max_ext, global_bb.max_z - global_bb.min_z);
-    float scale = (max_ext > 0.f) ? (2.0f / max_ext) : 1.0f;  // 예: [-1,1]에 맞춤
+    float scale = (max_ext > 0.f) ? (2.0f / max_ext) : 1.0f; 
 
     for (size_t i = 0; i < data.size(); i++) {
         auto* p = data[i];
-        p->set_scale(cx, cy, cz, scale);
+        p->set_scale(scale);
         p->load_data(vectorpointer[i], yesUT);
     }
     set_utmatrix(utmatrix, 1);

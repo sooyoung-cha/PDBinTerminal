@@ -55,7 +55,7 @@ public:
     float get_scaled_min_z();
     float get_scaled_max_z();
     BoundingBox& get_bounding_box();
-    void set_scale(float cx_, float cy_, float cz_, float scale_);\
+    void set_scale(float scale_);\
 
     // 초기화    
     void load_data(float * vectorpointers, bool yesUT);

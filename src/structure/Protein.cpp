@@ -56,11 +56,11 @@ BoundingBox& Protein::get_bounding_box() {
      return bounding_box; 
 }
 
-void Protein::set_scale(float cx_, float cy_, float cz_, float scale_) { 
-    cx = cx_;
-    cy = cy_;
-    cz = cz_;
+void Protein::set_scale(float scale_) { 
     scale = scale_;
+    cx = 0.5f * (bounding_box.min_x + bounding_box.max_x);
+    cy = 0.5f * (bounding_box.min_y + bounding_box.max_y);
+    cz = 0.5f * (bounding_box.min_z + bounding_box.max_z);
     ssPredictor.set_scale(1.0f/scale);
 }    
 
@@ -487,9 +487,9 @@ void Protein::load_init_atoms_cif(const std::string& in_file,
                         // atom_y = (y + vectorpointers[0]- cy) * scale;
                         // atom_z = (z + vectorpointers[0]- cz) * scale;
 
-                        atom_x = (x- cx) * scale;
-                        atom_y = (y- cy) * scale;
-                        atom_z = (z- cz) * scale;
+                        atom_x = (x - cx) * scale;
+                        atom_y = (y - cy) * scale;
+                        atom_z = (z - cz) * scale;
                     }
                     
                     Atom new_atom(atom_x, atom_y, atom_z, 'x');
