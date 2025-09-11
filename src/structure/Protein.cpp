@@ -318,7 +318,7 @@ void Protein::load_bbox_cif(const std::string& in_file) {
 void Protein::load_init_atoms_cif(const std::string& in_file,
                                  const std::string& target_chains,
                                  const std::vector<std::tuple<char, int, char, int, char>>& ss_info, float * vectorpointers, bool yesUT) {
-    std::cout << "  load structures from file [with structure]\n";
+    std::cout << "  load structures from file\n";
 
     std::ifstream file(in_file);
     if (!file.is_open()) {
@@ -667,6 +667,7 @@ void Protein::load_data(float * vectorpointers, bool yesUT) {
         std::cerr << "Error: input file format is not supported." << std::endl;
         return;
     }
+    std::cout << std::endl;
 }
 
 void Protein::set_rotate(int x_rotate, int y_rotate, int z_rotate){
