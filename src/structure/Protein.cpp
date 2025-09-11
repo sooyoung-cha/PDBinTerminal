@@ -318,7 +318,7 @@ void Protein::load_bbox_cif(const std::string& in_file) {
 void Protein::load_init_atoms_cif(const std::string& in_file,
                                  const std::string& target_chains,
                                  const std::vector<std::tuple<char, int, char, int, char>>& ss_info, float * vectorpointers, bool yesUT) {
-    std::cout << "  load structures from file\n";
+    std::cout << "  load atoms from file\n";
 
     std::ifstream file(in_file);
     if (!file.is_open()) {
