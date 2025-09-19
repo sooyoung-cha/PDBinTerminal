@@ -51,6 +51,7 @@ public:
     std::map<char, int> get_chain_length();
     int get_chain_length(char chainID);
     int get_length();
+    void setboundingbox();
 
     float get_scaled_min_z();
     float get_scaled_max_z();
@@ -63,13 +64,14 @@ public:
     // 변형
     void set_rotate(int x_rotate, int y_rotate, int z_rotate);
     void set_shift(float shift_x, float shift_y, float shift_z);
+    void do_naive_rotation(float* rotate_mat);
     void do_rotation(float* rotate_mat);
     void do_shift(float* shift_mat);
+    void do_scale(float sclae);
+    float cx, cy, cz, scale;
 
 private:
-
     bool is_ss_in_cif(const std::string& in_file);
-    void load_bbox_pdb(const std::string& in_file);
     void load_ss_info_pdb(const std::string& in_file, 
                           const std::string& target_chains,
                           std::vector<std::tuple<char, int, char, int, char>>& ss_info);
@@ -80,7 +82,6 @@ private:
                              const std::string& target_chains, float * vectorpointers, bool yesUT);
 
     bool is_ss_in_pdb(const std::string& in_file);
-    void load_bbox_cif(const std::string& in_file);
     void load_ss_info_cif(const std::string& in_file, 
                           const std::string& target_chains,
                           std::vector<std::tuple<char, int, char, int, char>>& ss_info);
@@ -101,7 +102,6 @@ private:
     bool show_structure, predict_structure;
 
     BoundingBox bounding_box;
-    float cx, cy, cz, scale;
 
     StructureMaker structureMaker;
     SSPredictor ssPredictor;

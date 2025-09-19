@@ -97,30 +97,38 @@ void Screen::set_utmatrix(const std::string& utmatrix, bool onlyU) {
         }
     }
     file.close();
-    for (size_t i=0; i < filenum; i++) {
-        data[i]->do_rotation(matrixpointer[i]);
-        if(onlyU == 0) {
-            data[i]->do_shift(vectorpointer[i]);
+    if(onlyU == 1){
+        for (size_t i=0; i < filenum; i++) {
+            data[i]-> do_naive_rotation(matrixpointer[i]);
+            data[i]-> do_shift(vectorpointer[i]);
         }
     }
 }
 
 void Screen::normalize_proteins(const std::string& utmatrix){
-    for (auto* p : data) {
-        BoundingBox bb = p->get_bounding_box();
-        global_bb = global_bb + bb;
-    }
-
-    float max_ext = std::max(global_bb.max_x - global_bb.min_x, global_bb.max_y - global_bb.min_y);
-    max_ext = std::max(max_ext, global_bb.max_z - global_bb.min_z);
-    float scale = (max_ext > 0.f) ? (2.0f / max_ext) : 1.0f; 
-
+    
     for (size_t i = 0; i < data.size(); i++) {
         auto* p = data[i];
-        p->set_scale(scale);
         p->load_data(vectorpointer[i], yesUT);
     }
     set_utmatrix(utmatrix, 1);
+    for (auto* p : data) {
+        p->setboundingbox();
+        BoundingBox bb = p->get_bounding_box();
+        global_bb = global_bb + bb;
+    }
+    float max_ext = std::max(global_bb.max_x - global_bb.min_x, global_bb.max_y - global_bb.min_y);
+    max_ext = std::max(max_ext, global_bb.max_z - global_bb.min_z);
+    float scale = (max_ext > 0.f) ? (2.0f / max_ext) : 1.0f; 
+    for (size_t i = 0; i < data.size(); i++) {
+        auto* p = data[i];
+        p->set_scale(scale);
+        vectorpointer[i][0] = p->cx * (-1);
+        vectorpointer[i][1] = p->cy * (-1);
+        vectorpointer[i][2] = p->cz * (-1);
+        p -> do_shift(vectorpointer[i]);
+        p -> do_scale(p->scale);
+    }
 }
 
 char Screen::getPixelCharFromDepth(float z, float min_z, float max_z) {
