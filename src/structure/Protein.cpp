@@ -78,7 +78,7 @@ bool Protein::is_ss_in_pdb(const std::string& in_file){
     return false;
 }
 
-void Protein::setboundingbox() {
+void Protein::set_bounding_box() {
     for (auto& [chainID, chain_atoms] : screen_atoms) {
         for (Atom& atom : chain_atoms) {
             bounding_box.min_x = std::min(bounding_box.min_x, atom.x);

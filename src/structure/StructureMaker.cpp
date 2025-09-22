@@ -5,7 +5,7 @@ const float PI = 3.14159265359f;
 StructureMaker::StructureMaker() {}
 StructureMaker::~StructureMaker() {}
 
-std::vector<std::vector<Atom>> StructureMaker::extractHelixSegments(const Atom* atoms, int num_atoms) {
+std::vector<std::vector<Atom>> StructureMaker::extract_helix_segments(const Atom* atoms, int num_atoms) {
     std::vector<std::vector<Atom>> helices;
     std::vector<Atom> current;
 
@@ -28,7 +28,7 @@ std::vector<std::vector<Atom>> StructureMaker::extractHelixSegments(const Atom* 
 }
 
 
-void StructureMaker::computeHelixAxis(const std::vector<Atom>& helix, float (&center)[3], float (&axis)[3]) {
+void StructureMaker::compute_helix_axis(const std::vector<Atom>& helix, float (&center)[3], float (&axis)[3]) {
     size_t N = helix.size();
     if (N == 0) return;
 

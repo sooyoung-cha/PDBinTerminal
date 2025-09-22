@@ -13,13 +13,8 @@ struct RenderPoint {
     char pixel;
     char chainID;
     char structure = 'x';
-    int color_id = 0;  
-};
-
-struct ScreenPixel {
+    int color_id = 0;      
     float depth = std::numeric_limits<float>::max();  // z-buffer용
-    char pixel = ' ';      // 표시할 문자
-    int color_id = 0;      // ncurses color pair index
 };
 
 class Screen {
@@ -28,15 +23,15 @@ public:
     ~Screen();
     bool handle_input();
     bool isSame = true;
-    char getPixelCharFromDepth(float z, float min_z, float max_z);
+    char get_pixel_char_from_depth(float z, float min_z, float max_z);
     void set_protein(const std::string& in_file, const std::string& target_chains, const bool& show_structure);
     void normalize_proteins(const std::string& utmatrix);
     void set_tmatrix();
     void set_utmatrix(const std::string& utmatrix, bool onlyU);
     void set_zoom_level(float zoom);
-    void drawScreen();
+    void draw_screen();
     void assign_colors_to_points(std::vector<RenderPoint>& points, int protein_idx);
-    void drawLine(std::vector<RenderPoint>& points,
+    void draw_line(std::vector<RenderPoint>& points,
                   int x1, int x2, 
                   int y1, int y2,
                   float z1, float z2, 
@@ -54,7 +49,7 @@ private:
     bool yesUT = false;
     std::string screen_mode;
     float aspect_ratio;
-    std::vector<ScreenPixel> screenPixels;  
+    std::vector<RenderPoint> screenPixels;  
     std::vector<Protein*> data;  
     std::vector<float> zoom_level;
     float ** vectorpointer;

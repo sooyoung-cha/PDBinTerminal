@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
     
     bool run = true;
     while(run) {
-        screen.drawScreen();
+        screen.draw_screen();
         run = screen.handle_input();
         usleep(100);
     }

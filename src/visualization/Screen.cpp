@@ -131,7 +131,7 @@ void Screen::normalize_proteins(const std::string& utmatrix){
     }
 }
 
-char Screen::getPixelCharFromDepth(float z, float min_z, float max_z) {
+char Screen::get_pixel_char_from_depth(float z, float min_z, float max_z) {
     z -= focal_offset;
     float zn = (z - min_z) / (max_z - min_z);
 
@@ -144,7 +144,7 @@ char Screen::getPixelCharFromDepth(float z, float min_z, float max_z) {
     else return '.';
 }
 
-void Screen::drawLine(std::vector<RenderPoint>& points,
+void Screen::draw_line(std::vector<RenderPoint>& points,
                       int x1, int x2, 
                       int y1, int y2,
                       float z1, float z2, 
@@ -169,7 +169,7 @@ void Screen::drawLine(std::vector<RenderPoint>& points,
         int iy = static_cast<int>(y);
 
         if (ix >= 0 && ix < screen_width && iy >= 0 && iy < screen_height) {
-            points.push_back({ix, iy, z, getPixelCharFromDepth(z, min_z, max_z), chainID, structure});
+            points.push_back({ix, iy, z, get_pixel_char_from_depth(z, min_z, max_z), chainID, structure});
         }
 
         x += xIncrement;
@@ -271,7 +271,7 @@ void Screen::project() {
                 int screenY = (int)((1.0 - projectedY) * 0.5 * screen_height);
 
                 if (prevScreenX != -1 && prevScreenY != -1) {
-                    drawLine(chainPoints, 
+                    draw_line(chainPoints, 
                              prevScreenX, screenX, 
                              prevScreenY, screenY, 
                              prevZ, z, 
@@ -280,7 +280,7 @@ void Screen::project() {
                 }
                 
                 if (screenX >= 0 && screenX < screen_width && screenY >= 0 && screenY < screen_height) {
-                    chainPoints.push_back({screenX, screenY, z, getPixelCharFromDepth(z, target->get_scaled_min_z(), target->get_scaled_max_z()), chainID, structure});
+                    chainPoints.push_back({screenX, screenY, z, get_pixel_char_from_depth(z, target->get_scaled_min_z(), target->get_scaled_max_z()), chainID, structure});
                 }
                 prevScreenX = screenX;
                 prevScreenY = screenY;
@@ -308,7 +308,7 @@ void Screen::print_screen() {
     for (int i = 0; i < screen_height; ++i) {
         for (int j = 0; j < screen_width; ++j) {
             int idx = i * screen_width + j;
-            const ScreenPixel& px = screenPixels[idx];
+            const RenderPoint& px = screenPixels[idx];
 
             if (px.color_id > 0) {
                 attron(COLOR_PAIR(px.color_id));
@@ -322,7 +322,7 @@ void Screen::print_screen() {
     refresh();  // 출력 적용
 }
 
-void Screen::drawScreen() {
+void Screen::draw_screen() {
     clear_screen();
     project();
     print_screen();
@@ -330,7 +330,7 @@ void Screen::drawScreen() {
 
 void Screen::clear_screen() {
     clear(); 
-    screenPixels.assign(screen_width * screen_height, ScreenPixel());
+    screenPixels.assign(screen_width * screen_height, RenderPoint());
 }
 
 void Screen::set_zoom_level(float zoom){

@@ -51,7 +51,7 @@ public:
     std::map<char, int> get_chain_length();
     int get_chain_length(char chainID);
     int get_length();
-    void setboundingbox();
+    void set_bounding_box();
 
     float get_scaled_min_z();
     float get_scaled_max_z();
