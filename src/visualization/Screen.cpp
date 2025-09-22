@@ -4,7 +4,7 @@
 
 const float FOV = 90.0;
 const float PI = 3.14159265359f;
-const float structnumber = 6;
+const float MAX_STRUCT_NUM = 6;
 
 Screen::Screen(const int& width, const int& height, const bool& show_structure, const std::string& mode) {
     screen_width = width;
@@ -12,7 +12,7 @@ Screen::Screen(const int& width, const int& height, const bool& show_structure, 
     screen_show_structure = show_structure;
     screen_mode = mode;
     aspect_ratio = (float)screen_width / screen_height;
-    zoom_level = std::vector<float>(structnumber, 3); 
+    zoom_level = std::vector<float>(MAX_STRUCT_NUM, 3); 
 }
 
 Screen::~Screen() {
@@ -335,7 +335,7 @@ void Screen::clear_screen() {
 
 void Screen::set_zoom_level(float zoom){
     if (structNum == -1) {
-        for (size_t i = 0; i < structnumber; i++) {
+        for (size_t i = 0; i < MAX_STRUCT_NUM; i++) {
             if ((zoom_level[i] + zoom > 1)&&(zoom_level[i] + zoom < 50)){
                 zoom_level[i] += zoom;
             }
@@ -455,6 +455,12 @@ bool Screen::handle_input(){
         case 114:
             set_zoom_level(0.5);
             break;   
+
+        // C, c (카메라)
+        case 67:
+        case 99:
+            screenPixels;
+            break;
 
         // Q, q
         case 81:
