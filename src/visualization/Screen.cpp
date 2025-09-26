@@ -1,7 +1,5 @@
 #include "Screen.hpp"
 
-#define NUM_PROTEIN 1
-
 const float FOV = 90.0;
 const float PI = 3.14159265359f;
 const float MAX_STRUCT_NUM = 6;
@@ -13,6 +11,9 @@ Screen::Screen(const int& width, const int& height, const bool& show_structure, 
     screen_mode = mode;
     aspect_ratio = (float)screen_width / screen_height;
     zoom_level = std::vector<float>(MAX_STRUCT_NUM, 3); 
+    
+    camera = new Camera(get_home_dir() + "/Pictures/StrucTTY_screenshot/",
+    width, height);
 }
 
 Screen::~Screen() {
@@ -20,6 +21,8 @@ Screen::~Screen() {
         delete p;
     }
     data.clear(); 
+    
+    delete camera;
 }
 
 void Screen::set_protein(const std::string& in_file, const std::string& target_chains, const bool& show_structure) {
@@ -113,7 +116,7 @@ void Screen::normalize_proteins(const std::string& utmatrix){
     }
     set_utmatrix(utmatrix, 1);
     for (auto* p : data) {
-        p->setboundingbox();
+        p->set_bounding_box();
         BoundingBox bb = p->get_bounding_box();
         global_bb = global_bb + bb;
     }
@@ -191,7 +194,7 @@ void Screen::assign_colors_to_points(std::vector<RenderPoint>& points, int prote
 
     if (screen_mode == "default") {
         for (auto& pt : points) {
-            init_pair(protein_idx+1, unrainbow_ids[protein_idx], -1);
+            init_pair(protein_idx+1, Palettes::UNRAINBOW[protein_idx], -1);
             pt.color_id = protein_idx + 1;
         }
     }
@@ -199,14 +202,14 @@ void Screen::assign_colors_to_points(std::vector<RenderPoint>& points, int prote
     else if (screen_mode == "chain") {
         char cur_chain = '-';
         int color_index = 0;
-        int num_colors = sizeof(unrainbow_ids) / sizeof(int);
+        int num_colors = sizeof(Palettes::UNRAINBOW) / sizeof(int);
 
         for (auto& pt : points) {
             char cID = pt.chainID;
             if (cID != cur_chain) {
                 color_index++;
                 cur_chain = cID;
-                int col = unrainbow_ids[(color_index - 1) % num_colors];
+                int col = Palettes::UNRAINBOW[(color_index - 1) % num_colors];
                 init_pair(color_index, col, -1);
             }
             pt.color_id = color_index;
@@ -216,15 +219,12 @@ void Screen::assign_colors_to_points(std::vector<RenderPoint>& points, int prote
     else if (screen_mode == "rainbow") {
         int total = points.size();
 
-        // PDB 스타일 rainbow 색상 ID 목록 (N → C 방향)
-        int num_colors = rainbow_ids.size();
+        int num_colors = Palettes::RAINBOW.size();
 
-        // COLOR_PAIR 등록
         for (int i = 0; i < num_colors; ++i) {
-            init_pair(i + 1, rainbow_ids[i], -1);
+            init_pair(i + 1, Palettes::RAINBOW[i], -1);
         }
 
-        // 포인트에 색상 지정 (등간격으로 할당)
         for (int i = 0; i < total; ++i) {
             int color_index = (i * num_colors) / total;
             color_index = std::min(color_index, num_colors - 1);
@@ -293,8 +293,8 @@ void Screen::project() {
 
         for (const auto& pt : finalPoints) {
             int idx = pt.y * screen_width + pt.x;
-            if (pt.z < screenPixels[idx].depth) {
-                screenPixels[idx].depth = pt.z;
+            if (pt.depth < screenPixels[idx].depth) {
+                screenPixels[idx].depth = pt.depth;
                 screenPixels[idx].pixel = pt.pixel;
                 screenPixels[idx].color_id = pt.color_id;
             }
@@ -459,7 +459,8 @@ bool Screen::handle_input(){
         // C, c (카메라)
         case 67:
         case 99:
-            screenPixels;
+            camera->screenshot(screenPixels);
+            std::this_thread::sleep_for(std::chrono::seconds(1));
             break;
 
         // Q, q

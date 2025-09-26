@@ -1,16 +1,32 @@
-include_directories(structure)
-include_directories(visualization)
+file(GLOB_RECURSE STRUCT_SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/structure/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/visualization/*.cpp"
+)
+file(GLOB_RECURSE STRUCT_HEADERS CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/structure/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/visualization/*.hpp"
+)
 
-add_subdirectory(structure)
-add_subdirectory(visualization)
+add_library(structty_core STATIC
+    ${STRUCT_SOURCES}
+    ${STRUCT_HEADERS}
+)
 
-find_package(Curses REQUIRED)
-include_directories(${CURSES_INCLUDE_DIRS})
+set_target_properties(structty_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-target_link_libraries(visualization PRIVATE ${CURSES_LIBRARIES})
+target_include_directories(structty_core
+    PUBLIC     
+        ${CMAKE_CURRENT_SOURCE_DIR}/structure
+        ${CMAKE_CURRENT_SOURCE_DIR}/visualization
+)
 
-find_package(OpenMP QUIET)
-if (OPENMP_FOUND)
-elseif (REQUIRE_OPENMP)
-    message(FATAL_ERROR "-- Could not find OpenMP. Skip check with -DREQUIRE_OPENMP=0.")
-endif ()
+target_link_libraries(structty_core
+    PRIVATE
+        structty_utils
+)
+
+if (MSVC)
+    target_compile_options(structty_core PRIVATE /W4)
+else()
+    target_compile_options(structty_core PRIVATE -Wall -Wextra -Wpedantic)
+endif()

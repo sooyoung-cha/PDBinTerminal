@@ -1,21 +1,22 @@
 #pragma once
-#include "../structure/Protein.hpp"
-#include "../structure/Atom.hpp"
+#include "Protein.hpp"
+#include "Atom.hpp"
+#include "RenderPoint.hpp"
+#include "Palette.hpp"
+#include "Camera.hpp"
 #include <vector>
 #include <cmath>
 #include <iostream>
 #include <unordered_map>
 #include <ncurses.h>
+#include <thread>
+#include <chrono>    
+#include <cstdlib>
 
-struct RenderPoint {
-    int x, y;
-    float z;
-    char pixel;
-    char chainID;
-    char structure = 'x';
-    int color_id = 0;      
-    float depth = std::numeric_limits<float>::max();  // z-buffer용
-};
+inline std::string get_home_dir() {
+    if (const char* home = std::getenv("HOME")) return std::string(home);
+    throw std::runtime_error("HOME is not set");
+}
 
 class Screen {
 public:
@@ -53,43 +54,13 @@ private:
     std::vector<Protein*> data;  
     std::vector<float> zoom_level;
     float ** vectorpointer;
+
     BoundingBox global_bb;
+    Camera* camera;
 
     std::unordered_map<char, int> chain_colors;
 
     void project();
     void clear_screen();
     void print_screen();
-
-    std::vector<int> rainbow_ids = {
-        196, // Red
-        202, // Orange
-        208, // Dark Orange
-        214, // Light Orange
-        220, // Gold
-        226, // Yellow
-        190, // Light Yellow-Green
-        154, // Chartreuse
-        118, // Lime
-        82,  // Green
-        46,  // Spring Green
-        49,  // Aqua Green
-        51,  // Cyan
-        45,  // Sky Blue
-        39,  // Dodger Blue
-        33,  // Blue
-        27,  // Dark Blue
-        21,  // Navy
-        93,  // Violet
-        129  // Magenta
-    };
-
-        std::vector<int> unrainbow_ids = {
-        82,  // Green
-        33,  // Blue
-        202, // Orange
-        93,  // Violet
-        226, // Yellow
-        118, // Lime
-    };
 };

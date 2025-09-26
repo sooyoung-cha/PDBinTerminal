@@ -109,14 +109,14 @@ void StructureMaker::calculate_ss_points(std::map<char, std::vector<Atom>>& init
                     auto segment = std::vector<Atom>(atoms.begin() + start, atoms.begin() + end);
 
                     float center[3], axis[3];
-                    computeHelixAxis(segment, center, axis);
+                    compute_helix_axis(segment, center, axis);
 
                     float dx = segment.back().x - segment.front().x;
                     float dy = segment.back().y - segment.front().y;
                     float dz = segment.back().z - segment.front().z;
                     float length = std::sqrt(dx * dx + dy * dy + dz * dz);
 
-                    const int steps = std::min<int>(8, (end - start));     
+                    const int steps = std::min<int>(circle_steps, (end - start));     
 
                     float up[3] = {0, 0, 1};
                     if (std::abs(axis[2]) > 0.99f) { up[0] = 1; up[2] = 0; }

@@ -1,9 +1,9 @@
 #include <iostream>
 #include <ncurses.h>
 #include <unistd.h> 
-#include "src/structure/Protein.hpp"
-#include "src/structure/Parameters.hpp"
-#include "src/visualization/Screen.hpp"
+#include "Protein.hpp"
+#include "Parameters.hpp"
+#include "Screen.hpp"
 
 int main(int argc, char* argv[]) {
     Parameters params(argc, argv);
