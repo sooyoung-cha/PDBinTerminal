@@ -39,7 +39,7 @@ public:
 private:
     float focal_offset = 10.0f;
     int structNum = -1;
-    int camera_mul = 2;
+    float camera_mul = 1.0;
     int screen_width, screen_height;
     bool screen_show_structure;
     bool yesUT = false;
