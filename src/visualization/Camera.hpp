@@ -6,6 +6,8 @@
 #include "RenderPoint.hpp"
 #include "lodepng.hpp"
 #include <ctime>
+#include <thread>
+#include <chrono>  
 #include <vector>
 #include <iostream>
 #include <filesystem> 
@@ -13,7 +15,7 @@
 
 class Camera {
 public:
-    Camera(const std::string dir, const int width, const int height);
+    Camera(const std::string dir, const int width, const int height, const std::string mode);
     ~Camera() = default;
 
     void screenshot(const std::vector<RenderPoint>& screenPixels);    
@@ -28,4 +30,8 @@ private:
     std::string camera_dir;
     int camera_width, camera_height;
     int screenshot_idx;
+
+    int height_duplicate = 2;
+
+    std::string camera_mode = "default";
 };

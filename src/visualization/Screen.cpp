@@ -12,8 +12,7 @@ Screen::Screen(const int& width, const int& height, const bool& show_structure, 
     aspect_ratio = (float)screen_width / screen_height;
     zoom_level = std::vector<float>(MAX_STRUCT_NUM, 3); 
     
-    camera = new Camera(get_home_dir() + "/Pictures/StrucTTY_screenshot/",
-    width, height);
+    camera = new Camera(get_home_dir() + "/Pictures/StrucTTY_screenshot/", width, height, mode);
 }
 
 Screen::~Screen() {
@@ -227,7 +226,7 @@ void Screen::assign_colors_to_points(std::vector<RenderPoint>& points, int prote
 
         for (int i = 0; i < total; ++i) {
             int color_index = (i * num_colors) / total;
-            color_index = std::min(color_index, num_colors - 1);
+            color_index = std::min(color_index, num_colors - 2);
             points[i].color_id = color_index + 1;
         }
     }
@@ -297,6 +296,71 @@ void Screen::project() {
                 screenPixels[idx].depth = pt.depth;
                 screenPixels[idx].pixel = pt.pixel;
                 screenPixels[idx].color_id = pt.color_id;
+            }
+        }
+    }
+}
+
+void Screen::project(std::vector<RenderPoint>& projectPixels, const int proj_width, const int proj_height) {
+    std::vector<float> fovRads;
+    for (size_t i = 0; i < data.size(); i++) {
+        fovRads.push_back(1.0 / tan((FOV / (zoom_level[i] * camera_mul)) * 0.5 / 180.0 * PI));
+    }
+
+    std::vector<RenderPoint> finalPoints;
+    std::vector<RenderPoint> chainPoints;
+
+    // project dots and connect them into line
+    int protein_idx = 0;
+    for (size_t ii = 0; ii < data.size(); ii++) {
+        Protein* target = data[ii];
+        chainPoints.clear();
+        for (const auto& [chainID, chain_atoms] : target->get_atoms()) {
+            if (chain_atoms.size() == 0) continue;
+
+            int num_atoms = target->get_chain_length(chainID);
+            int prevScreenX = -1, prevScreenY = -1;
+            float prevZ = -1.0f;
+
+            for (int i = 0; i < num_atoms; ++i) {
+                float* position = chain_atoms[i].get_position();
+                float x = position[0];
+                float y = position[1];
+                float z = position[2] + focal_offset;
+                char structure = chain_atoms[i].get_structure();
+
+                float projectedX = (x / z) * fovRads[ii];
+                float projectedY = (y / z) * fovRads[ii];
+                int screenX = (int)((projectedX + 1.0) * 0.5 * proj_width);
+                int screenY = (int)((1.0 - projectedY) * 0.5 * proj_height);
+
+                if (prevScreenX != -1 && prevScreenY != -1) {
+                    draw_line(chainPoints, 
+                             prevScreenX, screenX, 
+                             prevScreenY, screenY, 
+                             prevZ, z, 
+                             chainID, structure, 
+                             target->get_scaled_min_z(), target->get_scaled_max_z());
+                }
+                
+                if (screenX >= 0 && screenX < proj_width && screenY >= 0 && screenY < proj_height) {
+                    chainPoints.push_back({screenX, screenY, z, get_pixel_char_from_depth(z, target->get_scaled_min_z(), target->get_scaled_max_z()), chainID, structure});
+                }
+                prevScreenX = screenX;
+                prevScreenY = screenY;
+                prevZ = z;
+            }
+        }
+        assign_colors_to_points(chainPoints, protein_idx); 
+        finalPoints.insert(finalPoints.end(), chainPoints.begin(), chainPoints.end());
+        protein_idx++;
+
+        for (const auto& pt : finalPoints) {
+            int idx = pt.y * proj_width + pt.x;
+            if (pt.depth < projectPixels[idx].depth) {
+                projectPixels[idx].depth = pt.depth;
+                projectPixels[idx].pixel = pt.pixel;
+                projectPixels[idx].color_id = pt.color_id;
             }
         }
     }
@@ -458,11 +522,15 @@ bool Screen::handle_input(){
 
         // C, c (카메라)
         case 67:
-        case 99:
-            camera->screenshot(screenPixels);
-            std::this_thread::sleep_for(std::chrono::seconds(1));
+        case 99:     
+        {     
+            std::vector<RenderPoint> screenshotPixels;
+            screenshotPixels.assign(screen_width * screen_height, RenderPoint());
+            project(screenshotPixels, screen_width, screen_height);
+            camera->screenshot(screenshotPixels);
+            // camera->screenshot(screenPixels);
             break;
-
+        }
         // Q, q
         case 81:
         case 113:

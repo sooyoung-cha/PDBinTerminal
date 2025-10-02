@@ -8,9 +8,7 @@
 #include <cmath>
 #include <iostream>
 #include <unordered_map>
-#include <ncurses.h>
-#include <thread>
-#include <chrono>    
+#include <ncurses.h>  
 #include <cstdlib>
 
 inline std::string get_home_dir() {
@@ -23,7 +21,6 @@ public:
     Screen(const int& width, const int& height, const bool& show_structure, const std::string& mode);
     ~Screen();
     bool handle_input();
-    bool isSame = true;
     char get_pixel_char_from_depth(float z, float min_z, float max_z);
     void set_protein(const std::string& in_file, const std::string& target_chains, const bool& show_structure);
     void normalize_proteins(const std::string& utmatrix);
@@ -38,19 +35,17 @@ public:
                   float z1, float z2, 
                   char chainID, char structure,
                   float min_z, float max_z);
-    // void drawAlphHelix(std::vector<RenderPoint>& points);
-    // void drawBetaSheet(std::vector<RenderPoint>& points);
 
 private:
     float focal_offset = 10.0f;
     int structNum = -1;
-    int screen_width;
-    int screen_height;
+    int camera_mul = 2;
+    int screen_width, screen_height;
     bool screen_show_structure;
     bool yesUT = false;
     std::string screen_mode;
     float aspect_ratio;
-    std::vector<RenderPoint> screenPixels;  
+    std::vector<RenderPoint> screenPixels;   
     std::vector<Protein*> data;  
     std::vector<float> zoom_level;
     float ** vectorpointer;
@@ -61,6 +56,7 @@ private:
     std::unordered_map<char, int> chain_colors;
 
     void project();
+    void project(std::vector<RenderPoint>& screenshotPixels, const int proj_width, const int proj_height);
     void clear_screen();
     void print_screen();
 };
