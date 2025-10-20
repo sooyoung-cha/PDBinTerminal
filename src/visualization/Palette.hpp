@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include <cstdint>
 
 struct RGBA { uint8_t r,g,b,a; };
 static_assert(sizeof(RGBA) == 4, "RGBA must be 4 bytes");
