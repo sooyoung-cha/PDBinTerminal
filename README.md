@@ -49,6 +49,7 @@ make -j 10
 ```bash
  ./StrucTTY ../example/7DN3.pdb ../example/2Y0S.pdb ../example/7DU2.pdb -ut ../example/utfile_ex 
 ```
+![example](example/Structty_example.gif)
 
 ### With options:
 
