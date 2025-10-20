@@ -68,7 +68,7 @@ make -j 10
 * `0` — Control all proteins
 * `1` — Control only the first protein
 * `2` — Control only the second protein
-...
+* ...
 * `6` — Control only the sixth protein
 
 ### Movement
