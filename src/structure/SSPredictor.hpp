@@ -78,23 +78,23 @@ private:
         return angle;
     }
 
-    // break mask: 인접 원자 간 거리가 크면 단절로 보고 true
+    // break mask: if nearest residue is far, break. true
     std::vector<char> compute_breaks(const std::vector<Atom>& A);
 
-    // 거리/토션 기반 득표
+    // vote based on the distance/torsion
     void vote(const std::vector<Atom>& A,
               const std::vector<char>& is_break,
               std::vector<int>& h_score,
               std::vector<int>& e_score);
 
-    // 점수 → 1차 라벨
+    // score -> label
     std::vector<char> label_from_scores(const std::vector<int>& h_score,
                                         const std::vector<int>& e_score);
 
-    // 스무딩(고립 섬 제거 & 최소 길이 필터)
+    // smoothing (remove island, min len filter)
     void smooth_labels(const std::vector<char>& is_break,
                        std::vector<char>& lab);
 
-    // 연속 구간 길이 체크 유틸
+    // sequenctial region length check
     static void squash_short_segments(std::vector<char>& lab, char target, int min_len);
 };

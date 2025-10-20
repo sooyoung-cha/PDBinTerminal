@@ -34,7 +34,7 @@ void StructureMaker::compute_helix_axis(const std::vector<Atom>& helix, float (&
 
     float sum[3] = {0.0f, 0.0f, 0.0f};
 
-    // 1. 중심 좌표 계산
+    // calculate center coord
     for (const Atom& atom : helix) {
         sum[0] += atom.x;
         sum[1] += atom.y;
@@ -45,7 +45,7 @@ void StructureMaker::compute_helix_axis(const std::vector<Atom>& helix, float (&
     center[1] = sum[1] / N;
     center[2] = sum[2] / N;
 
-    // 2. 공분산 행렬 계산
+    // calculate covariance matrix
     float cov[3][3] = {0};
 
     for (const Atom& atom : helix) {
@@ -66,8 +66,8 @@ void StructureMaker::compute_helix_axis(const std::vector<Atom>& helix, float (&
         cov[2][2] += dz * dz;
     }
 
-    // 3. power iteration으로 주축 추정
-    float vec[3] = {1.0f, 0.0f, 0.0f};  // 초기 벡터
+    // main axis change by power iteration
+    float vec[3] = {1.0f, 0.0f, 0.0f};  // init vector
     for (int iter = 0; iter < 10; ++iter) {
         float x = cov[0][0]*vec[0] + cov[0][1]*vec[1] + cov[0][2]*vec[2];
         float y = cov[1][0]*vec[0] + cov[1][1]*vec[1] + cov[1][2]*vec[2];
@@ -100,7 +100,7 @@ void StructureMaker::calculate_ss_points(std::map<char, std::vector<Atom>>& init
             char s = atoms[i].structure;
 
             if (s == 'H') {
-                // 헬릭스 시작: 연속된 H 구간 찾기
+                // helix start: find sequential H
                 size_t start = i;
                 while (i < atoms.size() && atoms[i].structure == 'H') ++i;
                 size_t end = i;
@@ -156,7 +156,7 @@ void StructureMaker::calculate_ss_points(std::map<char, std::vector<Atom>>& init
                         }
                     }
                 } else {
-                    // 너무 짧으면 그냥 무시
+                    // if too short, ignore
                     i = end;
                 }
             }
@@ -171,13 +171,13 @@ void StructureMaker::calculate_ss_points(std::map<char, std::vector<Atom>>& init
                 float len = std::sqrt(dx * dx + dy * dy + dz * dz);
                 if (len == 0) { i++; continue; }
 
-                float axis[3] = { dx / len, dy / len, dz / len };  // 방향벡터
+                float axis[3] = { dx / len, dy / len, dz / len };  // direction vector
                 float up[3] = { 0.0f, 0.0f, 1.0f };
                 if (std::abs(axis[2]) > 0.99f) {
-                    up[0] = 1.0f; up[2] = 0.0f;  // Z축과 거의 일치하면 교체
+                    up[0] = 1.0f; up[2] = 0.0f;  // if almost similar to z-axis, replace
                 }
 
-                // n1: axis와 수직인 벡터
+                // n1: vector perpendicular to axis
                 float n1[3] = {
                     axis[1]*up[2] - axis[2]*up[1],
                     axis[2]*up[0] - axis[0]*up[2],
@@ -186,7 +186,7 @@ void StructureMaker::calculate_ss_points(std::map<char, std::vector<Atom>>& init
                 float n1_norm = std::sqrt(n1[0]*n1[0] + n1[1]*n1[1] + n1[2]*n1[2]);
                 for (int j = 0; j < 3; ++j) n1[j] /= n1_norm;
 
-                // 리본 너비 벡터 n1 방향으로 이동
+                // ribbon width vector, move to direction n1
                 int line_steps = std::max<int>(2, static_cast<int>(len / 0.05f));
 
                 for (int step = -width; step <= width; ++step) {
@@ -213,11 +213,11 @@ void StructureMaker::calculate_ss_points(std::map<char, std::vector<Atom>>& init
                         output.emplace_back(x, y, z, 'S');
                     }
                 }
-                i++;  // sheet는 pair 처리
+                i++;  // sheet: pair
             }
 
             else {
-                // 구조 없는 애는 그대로 추가
+                // no structure, just add
                 output.push_back(atoms[i]);
                 ++i;
             }

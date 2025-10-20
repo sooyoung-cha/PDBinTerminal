@@ -46,7 +46,6 @@ public:
     Protein(const std::string& in_file_, const std::string& target_chains_, const bool& show_structure_);
     ~Protein();
 
-    // 데이터 접근자
     std::map<char, std::vector<Atom>>& get_atoms();
     std::map<char, int> get_chain_length();
     int get_chain_length(char chainID);
@@ -58,10 +57,8 @@ public:
     BoundingBox& get_bounding_box();
     void set_scale(float scale_);\
 
-    // 초기화    
     void load_data(float * vectorpointers, bool yesUT);
     
-    // 변형
     void set_rotate(int x_rotate, int y_rotate, int z_rotate);
     void set_shift(float shift_x, float shift_y, float shift_z);
     void do_naive_rotation(float* rotate_mat);
@@ -93,7 +90,6 @@ private:
     
     void pred_ss_info(std::map<char, std::vector<Atom>>& init_atoms);
 
-    // 멤버 데이터
     std::map<char, std::vector<Atom>> init_atoms;
     std::map<char, std::vector<Atom>> screen_atoms;
 

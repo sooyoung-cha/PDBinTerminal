@@ -7,7 +7,7 @@ std::vector<char> SSPredictor::compute_breaks(const std::vector<Atom>& A) {
     if (n < 2) return br;
     for (size_t i = 0; i + 1 < n; ++i) {
         if (dist(A[i], A[i+1]) * scale > break_gap) {
-            br[i] = 1; // i와 i+1 사이가 끊김
+            br[i] = 1;
         }
     }
     return br;
@@ -97,7 +97,7 @@ void SSPredictor::smooth_labels(const std::vector<char>& is_break,
         return true;
     };
 
-    // 1) 고립 섬 제거 (크기 <= smooth_island)
+    // remove island (size <=smooth_island)
     int K = smooth_island;
     if (K >= 1) {
         for (char t : {'H', 'S'}) {
@@ -108,7 +108,6 @@ void SSPredictor::smooth_labels(const std::vector<char>& is_break,
                 while (j < n && lab[j] == t) ++j;
                 int len = static_cast<int>(j - i);
 
-                // 구간 양끝이 단절로 끊기지 않고 K 이하면 'x'
                 if (len <= K) {
                     bool across_break = false;
                     if (i > 0 && !not_across_break(i-1, i)) across_break = true;
@@ -122,30 +121,27 @@ void SSPredictor::smooth_labels(const std::vector<char>& is_break,
         }
     }
 
-    // 2) 최소 길이 필터
+    // min len filter
     squash_short_segments(lab, 'H', helix_min_len);
     squash_short_segments(lab, 'S',  beta_min_len);
-
-    // 3) 단절점 양옆 정리: 단절 경계에 단일 라벨이 걸쳐 있으면 쪼개기(이미 구간화로 대부분 해결)
-    // 필요시 추가 로직 가능.
 }
 
 void SSPredictor::run_chain(std::vector<Atom>& chain_atoms) {
     const size_t n = chain_atoms.size();
     if (n == 0) return;
 
-    // 단절 위치
+    // break position
     std::vector<char> is_break = compute_breaks(chain_atoms);
 
-    // 득표
+    // vote
     std::vector<int> h_score(n, 0), e_score(n, 0);
     vote(chain_atoms, is_break, h_score, e_score);
 
-    // 1차 라벨 → 스무딩
+    // label -> smoothing
     std::vector<char> lab = label_from_scores(h_score, e_score);
     smooth_labels(is_break, lab);
 
-    // 결과 적용
+    // result
     for (size_t i = 0; i < n; ++i) {
         chain_atoms[i].set_structure(lab[i]);
     }

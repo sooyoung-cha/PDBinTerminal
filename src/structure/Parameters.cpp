@@ -2,15 +2,15 @@
 
 bool Parameters::is_valid_number(const std::string& str, int min, int max) {
     try {
-        // 입력값이 숫자인지 확인
+        // Is input number
         for (char c : str) {
             if (!std::isdigit(c)) return false;
         }
 
-        // 문자열을 정수로 변환
+        // string to integer
         int value = std::stoi(str);
 
-        // 범위 확인
+        // check range
         if (value < min || value > max) {
             return false;
         }
@@ -32,10 +32,10 @@ Parameters::Parameters(int argc, char* argv[]) {
 
     for (int i = 1; i < argc; i++) {
         try {
-            if (!strcmp(argv[i], "-m") || !strcmp(argv[i], "--mode")) {  // ✅ mode 옵션 추가
+            if (!strcmp(argv[i], "-m") || !strcmp(argv[i], "--mode")) {
                 if (i + 1 < argc) {
                     std::string val(argv[i + 1]);
-                    std::transform(val.begin(), val.end(), val.begin(), ::tolower); // 소문자로 변환
+                    std::transform(val.begin(), val.end(), val.begin(), ::tolower); // to lowercase
                     if (val == "chain" || val == "rainbow" || val == "default") {
                         mode = val;
                         i++;
@@ -48,7 +48,7 @@ Parameters::Parameters(int argc, char* argv[]) {
             }
             else if (!strcmp(argv[i], "-c") || !strcmp(argv[i], "--chains")) {
                 if (i + 1 < argc) {  
-                    if (argv[i+1] == nullptr || strlen(argv[i+1]) == 0) {  // ✅ 비어 있는 값 체크
+                    if (argv[i+1] == nullptr || strlen(argv[i+1]) == 0) {  // if empty value
                         throw std::runtime_error("Error: Chains argument is empty.");
                     }
                     while(in_file.size() - 1 != chains.size()){
@@ -100,7 +100,7 @@ Parameters::Parameters(int argc, char* argv[]) {
                 in_file.push_back(argv[i]);
             }
             else {
-                throw std::runtime_error("Error: Unknown parameter: " + std::string(argv[i])); // ⬅ throw 수정 (문제 3 해결)
+                throw std::runtime_error("Error: Unknown parameter: " + std::string(argv[i]));
             }
         }
         catch (const std::exception& e) {

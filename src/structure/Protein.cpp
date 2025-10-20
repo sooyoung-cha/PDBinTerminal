@@ -107,14 +107,6 @@ void Protein::load_init_atoms_pdb(const std::string& in_file,
                 float x = std::stof(line.substr(30, 8));
                 float y = std::stof(line.substr(38, 8));
                 float z = std::stof(line.substr(46, 8));
-
-                // ✅ 좌표 정규화 ([-1, 1] 범위로 조정)
-                // if (yesUT == false) {
-                //     x = (x - cx) * scale;
-                //     y = (y - cy) * scale;
-                //     z = (z - cz) * scale;
-                // }
-                
                 Atom new_atom(x, y, z);
                 
                 for (const auto& [start_chainID, start, end_chainID, end, struct_type] : ss_info) {
@@ -239,7 +231,7 @@ void Protein::load_init_atoms_cif(const std::string& in_file,
 
     std::vector<std::tuple<char, int, float, float, float>> atom_data;
 
-    // ✅ 1. atom_site 영역 수집
+    // get atom_site region
     while (std::getline(file, line)) {
         if (line.find("_atom_site.") != std::string::npos) {
             atom_site_idx++;
@@ -337,7 +329,7 @@ void Protein::load_init_atoms_cif(const std::string& in_file,
 
     std::vector<std::tuple<char, int, float, float, float>> atom_data;
 
-    // ✅ 1. atom_site 영역 수집
+    //  get atom_site region
     while (std::getline(file, line)) {
         if (line.find("_atom_site.") != std::string::npos) {
             atom_site_idx++;
@@ -498,9 +490,9 @@ void Protein::load_ss_info_cif(const std::string& in_file,
         file.close();
     };
 
-    // 두 섹션을 각각 파싱
-    parse_section("_struct_conf.", 'H');             // 헬릭스
-    parse_section("_struct_sheet_range.", 'S');      // 시트
+    // parse two sections respectively
+    parse_section("_struct_conf.", 'H');             // helix
+    parse_section("_struct_sheet_range.", 'S');      // sheet
 }
 
 std::ostream& operator<<(std::ostream& os, const std::tuple<char, int, char, int, char>& t) {

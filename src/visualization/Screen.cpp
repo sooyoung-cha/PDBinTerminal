@@ -367,7 +367,7 @@ void Screen::project(std::vector<RenderPoint>& projectPixels, const int proj_wid
 }
 
 void Screen::print_screen() {
-    clear();  // ncurses 화면 초기화
+    clear();  // ncurses screen initialization
 
     for (int i = 0; i < screen_height; ++i) {
         for (int j = 0; j < screen_width; ++j) {
@@ -383,7 +383,7 @@ void Screen::print_screen() {
             }
         }
     }
-    refresh();  // 출력 적용
+    refresh();  // screen output
 }
 
 void Screen::draw_screen() {
@@ -430,7 +430,7 @@ bool Screen::handle_input(){
                 structNum = key - 49;
             }
             break;
-        // A, a (x 축 음의 이동)
+        // A, a (minus x-axis)
         case 65:
         case 97:
             if (structNum != -1) {
@@ -441,7 +441,7 @@ bool Screen::handle_input(){
                 }
             }
             break;
-        // D, d (x 축 양의 이동)
+        // D, d (plus x-axis)
         case 68:
         case 100:
             if (structNum != -1) {
@@ -452,7 +452,7 @@ bool Screen::handle_input(){
                 }
             }
             break;
-        // S, s (y 축 음의 이동)
+        // S, s (minus y-axis)
         case 83:
         case 115:
             if (structNum != -1) {
@@ -463,7 +463,7 @@ bool Screen::handle_input(){
                 }
             }
             break;      
-        // W, w (y 축 양의 이동)
+        // W, w (plus y-axis)
         case 87:
         case 119:
             if (structNum != -1) {
@@ -475,7 +475,7 @@ bool Screen::handle_input(){
             }
             break;
 
-        // X, x (x 축 중심 회전)
+        // X, x (rotate x-centered)
         case 88:
         case 120:
             if (structNum != -1) {
@@ -486,7 +486,7 @@ bool Screen::handle_input(){
                 }
             }
             break;  
-        // Y, y (y 축 중심 회전)
+        // Y, y (rotate y-centered)
         case 89:
         case 121:
             if (structNum != -1) {
@@ -497,7 +497,7 @@ bool Screen::handle_input(){
                 }
             }
             break;  
-        // Z, z (z 축 중심 회전)
+        // Z, z (rotate z-centered)
         case 90:
         case 122:
             if (structNum != -1) {
@@ -509,18 +509,18 @@ bool Screen::handle_input(){
             }
             break;  
 
-        // F, f (줌 아웃)
+        // F, f (zoom out)
         case 70:
         case 102:
             set_zoom_level(-0.5);
             break;   
-        // R, R (줌 인)
+        // R, R (zoom in)
         case 82:
         case 114:
             set_zoom_level(0.5);
             break;   
 
-        // C, c (카메라)
+        // C, c (camera)
         case 67:
         case 99:     
         {     
