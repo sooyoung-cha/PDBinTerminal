@@ -4,13 +4,11 @@
 
 ## ✨ Features
 
-* Render one or two proteins side-by-side in the terminal
-* Compare aligned structures (via Foldseek or external u/t matrix)
+* Render up to six proteins in the terminal
 * Move and rotate proteins independently or simultaneously
 * Support for chain-specific views
 * Helix/sheet secondary structure visualization
 * Adjustable screen width and height
-* Minimal dependencies, blazing fast terminal performance
 
 ## 📦 Installation
 
@@ -19,42 +17,47 @@
 * C++17 compiler (e.g., g++ ≥ 7)
 * CMake ≥ 3.10
 * Linux or macOS (Terminal-compatible)
-* Foldseek (optional, for integration)
 
 ### Build
 
 ```bash
-git clone https://github.com/yourname/PDBTerminal.git
+git clone https://github.com/Sooyoung-cha/PDBTerminal.git
 cd PDBTerminal
 mkdir build && cd build
 cmake ..
 make -j 10
 ```
 
-> Output binary will be generated at `build/src/TerminalPDB`.
+> Output binary will be generated at `build/StrucTTY`.
 
 ## 🚀 Quick Start
 
 ### Run a single PDB file:
 
 ```bash
-./TerminalPDB example1.pdb
+./StrucTTY ../example/8yac.cif
 ```
 
 ### Compare two PDB files:
 
 ```bash
-./TerminalPDB example1.pdb example2.pdb
+ ./StrucTTY ../example/7DN3.pdb ../example/2Y0S.pdb ../example/7DU2.pdb
+```
+
+### Compare two PDB files using rotation and transform matrix:
+
+```bash
+ ./StrucTTY ../example/7DN3.pdb ../example/2Y0S.pdb ../example/7DU2.pdb -ut ../example/utfile_ex 
 ```
 
 ### With options:
 
 ```bash
-./TerminalPDB example1.pdb example2.pdb \
+./StrucTTY ../example/1A52.pdb ../example/1ERR.pdb \
   -c A,B \                     # select chains A and B
   -m chain \                   # color mode: chain / rainbow / default
   -w 3 -h 2 \                  # terminal screen size (width x height units, 1~5)
-  -u umatrix.txt \            # optional u matrix from Foldseek
+  -ut utmatrix.txt \            # optional u, t matrix from Foldseek
   -s                          # show secondary structure (helix/sheet)
 ```
 
@@ -62,9 +65,11 @@ make -j 10
 
 ## 🎮 Keyboard Controls
 
-* `0` — Control both proteins
+* `0` — Control all proteins
 * `1` — Control only the first protein
 * `2` — Control only the second protein
+...
+* `6` — Control only the sixth protein
 
 ### Movement
 
@@ -90,7 +95,7 @@ make -j 10
 
 ## 🔗 Integration with Foldseek
 
-PDB Terminal can already accept external transformation matrices (`u`, `t`) output by **Foldseek** for protein alignment visualization.
+PDB Terminal can accept external transformation matrices (`u`, `t`) output by **Foldseek** for protein alignment visualization.
 
 Future releases will include:
 
