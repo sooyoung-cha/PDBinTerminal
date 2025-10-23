@@ -14,9 +14,11 @@
 
 ### Requirements
 
-* C++17 compiler (e.g., g++ ≥ 7)
-* CMake ≥ 3.10
-* Linux or macOS (Terminal-compatible)
+* **C++17 compiler** 
+  * requires **GCC ≥ 7.1** or **Clang ≥ 5.0**
+  * Tested with **GCC 12.2.0 (Debian 12.2.0-14+deb12u1)**
+* **CMake ≥ 3.15**
+* **Linux or macOS** (Terminal-compatible)
 
 ### Build
 
