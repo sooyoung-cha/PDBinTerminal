@@ -23,7 +23,7 @@
 ### Build
 
 ```bash
-git clone https://github.com/Sooyoung-cha/PDBTerminal.git
+git clone https://github.com/Sooyoung-cha/PDBinTerminal.git
 cd PDBTerminal
 mkdir build && cd build
 cmake ..
@@ -34,11 +34,12 @@ make -j 10
 
 ## 🚀 Quick Start
 
-### Run a single PDB file:
+### Run a single PDB file (show secondary structure & rainbow color):
 
 ```bash
-./StrucTTY ../example/8yac.cif
+./StrucTTY ../example/1mh1.pdb -s --mode rainbow
 ```
+![example](example/Structty_example_single.gif)
 
 ### Compare two PDB files:
 
@@ -51,7 +52,7 @@ make -j 10
 ```bash
  ./StrucTTY ../example/7DN3.pdb ../example/2Y0S.pdb ../example/7DU2.pdb -ut ../example/utfile_ex 
 ```
-![example](example/Structty_example.gif)
+![example](example/Structty_example_multiple.gif)
 
 ### With options:
 
