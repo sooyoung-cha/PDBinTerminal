@@ -30,6 +30,19 @@ cmake ..
 make -j 10
 ```
 
+```bash
+git clone https://github.com/Sooyoung-cha/PDBinTerminal.git
+cd PDBTerminal
+mkdir build && cd build
+brew install ncurses
+cmake .. \
+  -DCURSES_INCLUDE_PATH=/opt/homebrew/opt/ncurses/include \
+  -DCURSES_LIBRARY=/opt/homebrew/opt/ncurses/lib/libncursesw.dylib \
+  -DCMAKE_EXE_LINKER_FLAGS="-L/opt/homebrew/opt/ncurses/lib -lncursesw -Wl,-rpath,/opt/homebrew/opt/ncurses/lib" \
+  -DCMAKE_CXX_FLAGS="-I/opt/homebrew/opt/ncurses/include"
+make
+```
+
 > Output binary will be generated at `build/StrucTTY`.
 
 ## 🚀 Quick Start
