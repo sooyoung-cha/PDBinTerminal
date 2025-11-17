@@ -51,10 +51,10 @@ class Parameters{
             return utmatrix;
         }
         int get_width(){
-            return width * 40 + 40;
+            return width * 32 + 32;
         }
         int get_height(){
-            return height * 10 + 30;
+            return height * 8 + 24;
         }
         string get_mode(){
             return mode;

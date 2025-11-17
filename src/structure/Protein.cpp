@@ -23,6 +23,7 @@ std::map<char, int> Protein::get_chain_length() {
     }
     return result;
 }
+
 int Protein::get_chain_length(char chainID) {
     if (screen_atoms.count(chainID)) {
         return screen_atoms[chainID].size();

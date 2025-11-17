@@ -4,6 +4,7 @@
 #include "RenderPoint.hpp"
 #include "Palette.hpp"
 #include "Camera.hpp"
+#include "Panel.hpp"
 #include <vector>
 #include <cmath>
 #include <iostream>
@@ -52,6 +53,7 @@ private:
 
     BoundingBox global_bb;
     Camera* camera;
+    Panel* panel;
 
     std::unordered_map<char, int> chain_colors;
 

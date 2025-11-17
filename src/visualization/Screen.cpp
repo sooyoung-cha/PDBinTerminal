@@ -13,6 +13,7 @@ Screen::Screen(const int& width, const int& height, const bool& show_structure, 
     zoom_level = std::vector<float>(MAX_STRUCT_NUM, 3); 
     
     camera = new Camera(get_home_dir() + "/Pictures/StrucTTY_screenshot/", width, height, mode);
+    panel = new Panel(width);
 }
 
 Screen::~Screen() {
@@ -22,6 +23,7 @@ Screen::~Screen() {
     data.clear(); 
     
     delete camera;
+    delete panel;
 }
 
 void Screen::set_protein(const std::string& in_file, const std::string& target_chains, const bool& show_structure) {
@@ -111,7 +113,8 @@ void Screen::normalize_proteins(const std::string& utmatrix){
     
     for (size_t i = 0; i < data.size(); i++) {
         auto* p = data[i];
-        p->load_data(vectorpointer[i], yesUT);
+        p->load_data(vectorpointer[i], yesUT);        
+        panel->add_panel_info(p->get_file_name(), p->get_chain_length());
     }
     set_utmatrix(utmatrix, 1);
     for (auto* p : data) {
@@ -390,6 +393,8 @@ void Screen::draw_screen() {
     clear_screen();
     project();
     print_screen();
+    
+    printw(panel->get_panel_info().c_str());
 }
 
 void Screen::clear_screen() {
