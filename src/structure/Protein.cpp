@@ -617,7 +617,6 @@ std::ostream& operator<<(std::ostream& os, const std::tuple<char, int, char, int
 void Protein::load_data(float * vectorpointers, bool yesUT) {    
     // pdb
     if (in_file.find(".pdb") != std::string::npos) {
-        count_seqres_pdb(in_file);
         if (show_structure){
             if (is_ss_in_pdb(in_file)){
                 std::vector<std::tuple<char, int, char, int, char>> ss_info;
@@ -632,21 +631,21 @@ void Protein::load_data(float * vectorpointers, bool yesUT) {
         else{
             load_init_atoms_pdb(in_file, target_chains, vectorpointers, yesUT);
         }
-
+        
         if (init_atoms.empty()) {
             std::cerr << "Error: input PDB file is empty." << std::endl;
             return;
         }
-
+        
         if (show_structure){
             structureMaker.calculate_ss_points(init_atoms, screen_atoms);
         }
         else{ screen_atoms = init_atoms; }
+        count_seqres_pdb(in_file);
     }
 
     // cif
     else if (in_file.find(".cif") != std::string::npos){
-        count_seqres_cif(in_file);
         if (show_structure){
             if (is_ss_in_cif(in_file)){
                 std::vector<std::tuple<char, int, char, int, char>> ss_info;
@@ -661,16 +660,17 @@ void Protein::load_data(float * vectorpointers, bool yesUT) {
         else{
             load_init_atoms_cif(in_file, target_chains, vectorpointers, yesUT);
         }
-
+        
         if (init_atoms.empty()) {
             std::cerr << "Error: input CIF file is empty." << std::endl;
             return;
         }
-
+        
         if (show_structure){
             structureMaker.calculate_ss_points(init_atoms, screen_atoms);
         }
         else{ screen_atoms = init_atoms; }
+        count_seqres_cif(in_file);
     }
 
     // others

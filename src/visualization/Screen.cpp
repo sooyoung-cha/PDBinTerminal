@@ -174,7 +174,7 @@ void Screen::draw_line(std::vector<RenderPoint>& points,
         int iy = static_cast<int>(y);
 
         if (ix >= 0 && ix < screen_width && iy >= 0 && iy < screen_height) {
-            points.push_back({ix, iy, z, get_pixel_char_from_depth(z, min_z, max_z), chainID, structure});
+            points.push_back({ix, iy, z, get_pixel_char_from_depth(z, min_z, max_z), 0, chainID, structure});
         }
 
         x += xIncrement;
@@ -282,7 +282,7 @@ void Screen::project() {
                 }
                 
                 if (screenX >= 0 && screenX < screen_width && screenY >= 0 && screenY < screen_height) {
-                    chainPoints.push_back({screenX, screenY, z, get_pixel_char_from_depth(z, target->get_scaled_min_z(), target->get_scaled_max_z()), chainID, structure});
+                    chainPoints.push_back({screenX, screenY, z, get_pixel_char_from_depth(z, target->get_scaled_min_z(), target->get_scaled_max_z()), 0, chainID, structure});
                 }
                 prevScreenX = screenX;
                 prevScreenY = screenY;
@@ -347,7 +347,7 @@ void Screen::project(std::vector<RenderPoint>& projectPixels, const int proj_wid
                 }
                 
                 if (screenX >= 0 && screenX < proj_width && screenY >= 0 && screenY < proj_height) {
-                    chainPoints.push_back({screenX, screenY, z, get_pixel_char_from_depth(z, target->get_scaled_min_z(), target->get_scaled_max_z()), chainID, structure});
+                    chainPoints.push_back({screenX, screenY, z, get_pixel_char_from_depth(z, target->get_scaled_min_z(), target->get_scaled_max_z()), 0, chainID, structure});
                 }
                 prevScreenX = screenX;
                 prevScreenY = screenY;
