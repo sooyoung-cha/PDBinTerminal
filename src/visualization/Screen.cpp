@@ -114,7 +114,7 @@ void Screen::normalize_proteins(const std::string& utmatrix){
     for (size_t i = 0; i < data.size(); i++) {
         auto* p = data[i];
         p->load_data(vectorpointer[i], yesUT);        
-        panel->add_panel_info(p->get_file_name(), p->get_chain_length());
+        panel->add_panel_info(p->get_file_name(), p->get_chain_length(), p->get_residue_count());
     }
     set_utmatrix(utmatrix, 1);
     for (auto* p : data) {

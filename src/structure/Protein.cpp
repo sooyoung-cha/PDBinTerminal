@@ -16,9 +16,13 @@ std::map<char, std::vector<Atom>>& Protein::get_atoms() {
     return screen_atoms;  
 }
 
+std::map<char, int> Protein::get_residue_count() {
+    return chain_res_count;
+}
+
 std::map<char, int> Protein::get_chain_length() {
     std::map<char, int> result;
-    for (const auto& [chainID, atoms] : screen_atoms) {
+    for (const auto& [chainID, atoms] : init_atoms) {
         result[chainID] = atoms.size();
     }
     return result;
@@ -33,7 +37,7 @@ int Protein::get_chain_length(char chainID) {
 
 int Protein::get_length() {
     int total_atoms = 0;
-    for (const auto& [chainID, atoms] : screen_atoms) {
+    for (const auto& [chainID, atoms] : init_atoms) {
         total_atoms += atoms.size();
     }
     return total_atoms;
@@ -91,6 +95,24 @@ void Protein::set_bounding_box() {
         }
     }
 }         
+
+void Protein::count_seqres_pdb(const std::string& file) {
+    std::ifstream in(file);
+    std::string line;
+
+    if (!in.is_open()) {
+        std::cerr << "Error opening file: " << file << std::endl;
+    }
+
+    while (std::getline(in, line)) {
+        if (line.rfind("SEQRES", 0) == 0) {
+            char chainID = line[11];                    // chain letter
+            int count = std::stoi(line.substr(13, 4)); // total residues in chain
+
+            chain_res_count[chainID] = count; // overwrite is fine
+        }
+    }
+}
 
 void Protein::load_init_atoms_pdb(const std::string& in_file, 
                                   const std::string& target_chains,
@@ -194,6 +216,92 @@ void Protein::load_ss_info_pdb(const std::string& in_file,
 }
 
 // cif file
+void Protein::count_seqres_cif(const std::string& file) {
+    std::ifstream in(file);
+
+    if (!in.is_open()) {
+        std::cerr << "Error opening file: " << file << std::endl;
+    }
+
+    std::string line;
+    bool in_loop = false;
+    bool in_poly_seq = false;
+    int entity_id_col = -1;
+    int num_col = -1;
+    int col_idx = 0;
+
+    std::map<std::string, int> entity_length; // entity_id → length
+    std::map<std::string, char> entity_chain; // entity_id → chain letter
+
+    // 먼저 chainID를 찾기 위한 poly section도 읽어야 함
+    std::ifstream in2(file);
+    std::string line2;
+
+    // _entity_poly.pdbx_strand_id   entity → chain map
+    while (std::getline(in2, line2)) {
+        if (line2.find("_entity_poly.pdbx_strand_id") != std::string::npos) {
+            // 다음 줄에 값이 나오는 형태
+            std::getline(in2, line2);
+            std::istringstream ss(line2);
+            std::string entity_id, strand_id;
+            ss >> entity_id >> strand_id;
+
+            char chainID = strand_id[0];
+            entity_chain[entity_id] = chainID;
+        }
+    }
+    in2.close();
+
+    // 이제 poly_seq loop 읽기
+    while (std::getline(in, line)) {
+        if (line == "loop_") {
+            in_loop = true;
+            continue;
+        }
+
+        if (in_loop && line.find("_entity_poly_seq.") != std::string::npos) {
+            if (line.find("_entity_poly_seq.entity_id") != std::string::npos)
+                entity_id_col = col_idx;
+            else if (line.find("_entity_poly_seq.num") != std::string::npos)
+                num_col = col_idx;
+
+            col_idx++;
+            continue;
+        }
+
+        // loop 끝
+        if (in_loop && line.size() > 0 && line[0] == '#') {
+            break;
+        }
+
+        // 실제 데이터 줄
+        if (in_loop && entity_id_col != -1 && num_col != -1) {
+            std::istringstream ss(line);
+            std::string token;
+            std::vector<std::string> tokens;
+            while (ss >> token) tokens.push_back(token);
+
+            if (tokens.size() > std::max(entity_id_col, num_col)) {
+                std::string entity_id = tokens[entity_id_col];
+                int num = std::stoi(tokens[num_col]);
+
+                if (entity_length[entity_id] < num)
+                    entity_length[entity_id] = num; // max num = length
+            }
+        }
+    }
+
+    in.close();
+
+    // entity → chain 매핑해 residue count 저장
+    for (auto& [entity, length] : entity_length) {
+        if (entity_chain.count(entity)) {
+            char chainID = entity_chain[entity];
+            chain_res_count[chainID] = length;
+        }
+    }
+}
+
 bool Protein::is_ss_in_cif(const std::string& in_file){
     std::ifstream openFile(in_file);
     if (!openFile.is_open()) {
@@ -509,6 +617,7 @@ std::ostream& operator<<(std::ostream& os, const std::tuple<char, int, char, int
 void Protein::load_data(float * vectorpointers, bool yesUT) {    
     // pdb
     if (in_file.find(".pdb") != std::string::npos) {
+        count_seqres_pdb(in_file);
         if (show_structure){
             if (is_ss_in_pdb(in_file)){
                 std::vector<std::tuple<char, int, char, int, char>> ss_info;
@@ -537,6 +646,7 @@ void Protein::load_data(float * vectorpointers, bool yesUT) {
 
     // cif
     else if (in_file.find(".cif") != std::string::npos){
+        count_seqres_cif(in_file);
         if (show_structure){
             if (is_ss_in_cif(in_file)){
                 std::vector<std::tuple<char, int, char, int, char>> ss_info;

@@ -2,8 +2,9 @@
 
 Panel::Panel(int width) : panel_width(width) {}
 
-void Panel::add_panel_info(const std::string& file_name, const std::map<char, int>& chain_info) {
-    panel_info[file_name] = chain_info;
+void Panel::add_panel_info(const std::string& file_name, const std::map<char, int>& chain_info, const std::map<char, int>& chain_residue_info) {
+    panel_atom_info[file_name] = chain_info;
+    panel_residue_info[file_name] = chain_residue_info;
 }
 
 std::string Panel::get_panel_info() const {
@@ -18,11 +19,11 @@ std::string Panel::get_panel_info() const {
     oss << "Q : Quit\n";
     oss <<  std::string(panel_width, '-') << "\n";
 
-    for (const auto& [file_name, chain_info] : panel_info) {
+    for (const auto& [file_name, chain_info] : panel_atom_info) {
         oss << file_name << "\n\t";
         int count = 0;
         for (const auto& [chainID, length] : chain_info) {
-            oss << chainID << ": " << length << "\t";
+            oss << chainID << ": " << panel_residue_info.at(file_name).at(chainID) << " (" << length << ")\t";
             count++;
             if (count % 3 == 0)
                 oss << "\n\t";

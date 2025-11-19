@@ -47,6 +47,7 @@ public:
     ~Protein();
 
     std::map<char, std::vector<Atom>>& get_atoms();
+    std::map<char, int> get_residue_count();
     std::map<char, int> get_chain_length();
     int get_chain_length(char chainID);
     int get_length();
@@ -69,7 +70,8 @@ public:
     float cx, cy, cz, scale;
 
 private:
-    bool is_ss_in_cif(const std::string& in_file);
+    void count_seqres_pdb(const std::string& file);
+    bool is_ss_in_pdb(const std::string& in_file);
     void load_ss_info_pdb(const std::string& in_file, 
                           const std::string& target_chains,
                           std::vector<std::tuple<char, int, char, int, char>>& ss_info);
@@ -78,8 +80,9 @@ private:
                              const std::vector<std::tuple<char, int, char, int, char>>& ss_info, float * vectorpointers, bool yesUT);
     void load_init_atoms_pdb(const std::string& in_file, 
                              const std::string& target_chains, float * vectorpointers, bool yesUT);
-
-    bool is_ss_in_pdb(const std::string& in_file);
+    
+    void count_seqres_cif(const std::string& file);
+    bool is_ss_in_cif(const std::string& in_file);
     void load_ss_info_cif(const std::string& in_file, 
                           const std::string& target_chains,
                           std::vector<std::tuple<char, int, char, int, char>>& ss_info);
@@ -93,6 +96,8 @@ private:
 
     std::map<char, std::vector<Atom>> init_atoms;
     std::map<char, std::vector<Atom>> screen_atoms;
+    
+    std::map<char, int> chain_res_count;
 
     std::string in_file;
     std::string target_chains;
